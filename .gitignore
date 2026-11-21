@@ -1,0 +1,34 @@
+# Build output: plugin DLLs go to GitHub Releases, not the repository
+*.dll
+*.pdb
+bin/
+obj/
+
+# Never commit Sports Interactive's files or anything built from them
+*.fmf
+*.ltc
+*.ltf
+interop/
+voices.tsv
+
+# BepInEx and other people's mods
+BepInEx/core/
+BepInEx/cache/
+BepInEx/patchers/
+dotnet/
+winhttp.dll
+version.dll
+doorstop_config.ini
+
+# Logs, state and saves from a play session
+*.log
+*.tsv
+*.fm
+saves/
+
+# Editors and OS
+.vs/
+.vscode/
+*.user
+Thumbs.db
+.DS_Store
