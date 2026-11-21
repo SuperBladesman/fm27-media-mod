@@ -1,6 +1,6 @@
 # Installing FM27 Media Mod (beta)
 
-> Working name; the release name is still to be chosen. Steps marked **(builder)** describe the first-launch builder, which is being written now.
+> Working name; the release name is still to be chosen.
 
 FM27 Media Mod changes Football Manager 27's media and dressing-room world: press conferences, interviews, player and staff chats, team talks, news and fan reactions. It never touches the match engine.
 
@@ -42,22 +42,32 @@ To check which build you have, open `BepInEx\LogOutput.log` in Notepad. The firs
 
 1. Close FM27.
 2. Download the latest `FM27-Media-Mod-<version>.zip` from the [Releases page](<repo URL>/releases).
-3. Extract it **into the game folder**, letting the zip's `BepInEx` folder merge with yours. Its plugin folders end up in `BepInEx\plugins`:
-   - `FM27MediaMod PressRoom`
-   - `FM27MediaMod Tabloid`
-   - `FM27MediaMod MediaLab`
-   - `FM27MediaMod TeamTalkFilter`
-4. **(builder)** Start FM27. On first launch the mod builds its language file from your own copy of FM27's English text and updates the game's media files. When it says it's done, **quit and start FM27 again**.
-5. Go to **Preferences > Language** and choose **English (FM27 Media Mod)**. FM compiles it the first time, which takes a moment.
+3. Extract it **into the game folder**, letting the zip's `BepInEx` folder merge with yours. You should end up with:
+   - in `BepInEx\plugins`: `FM27MediaMod PressRoom`, `FM27MediaMod Tabloid`, `FM27MediaMod MediaLab`, `FM27MediaMod TeamTalkFilter`;
+   - in `BepInEx\patchers`: `FM27MediaMod Builder` (the builder and its `data` folder).
+4. Start FM27. Before the main menu, the mod's **builder** runs once. It takes about 15 to 30 seconds, and FM may look frozen while it works. It:
+   - writes the mod's language file, built from your own copy of FM27's English, into your languages folder;
+   - updates the game's question, chat and commentary files (`media.fmf`, `simatch.fmf`), keeping copies of SI's originals in `BepInEx\FM27MediaMod\backups`;
+   - moves FM's caches aside (into `_to_delete` beside them) so FM rebuilds them.
+
+   What it did is written to `BepInEx\FM27MediaMod\builder.log`.
+5. Go to **Preferences > Language** and choose **English (FM27 Media Mod 1)**. FM compiles it the first time, which takes a moment.
 6. Load your save, or start a new game. The **MEDIA** tab on the right-hand edge of the screen opens the Media Office.
+
+If `builder.log` says FM's template (`example.ltf`) isn't there yet, FM hasn't created it so far: start FM once, quit, and start it again.
 
 ---
 
 ## After an FM27 patch
 
-- SI's patches restore the game's media files, and BepInEx rebuilds its files on the next launch (slow again, once).
-- **(builder)** The mod notices the patch on the next launch, redoes its build and asks for one restart.
+- SI's patches restore the game's media files, and BepInEx rebuilds its own files on the next launch, which is slow again, once.
+- The builder notices the patch on that launch and redoes its work. No restart is needed.
+- If SI has changed a file the mod patches so that a change no longer fits, the builder leaves SI's files as they are and says so in `builder.log`. The game then runs without the mod's extra questions, chats and commentary until a mod update arrives.
 - If something stops working after a patch, check the Releases page for an update before reporting it.
+
+## If the builder says "already holds mod content"
+
+The game's `media.fmf` or `simatch.fmf` already has mod changes in it that the builder didn't make, for example from an older hand-made version. Steam: right-click FM27 > **Properties** > **Installed Files** > **Verify integrity of game files**, then start FM again.
 
 ## Your saves
 
@@ -70,9 +80,9 @@ Most options are on the Media Office's **Settings** tab. The rest are in `BepInE
 ## Uninstalling
 
 1. Close FM27.
-2. Delete the four `FM27MediaMod ...` folders from `BepInEx\plugins`, and the `BepInEx\FM27MediaMod` folder.
+2. Delete the four `FM27MediaMod ...` folders from `BepInEx\plugins`, the `FM27MediaMod Builder` folder from `BepInEx\patchers`, and the `BepInEx\FM27MediaMod` folder.
 3. Steam: right-click FM27 > **Properties** > **Installed Files** > **Verify integrity of game files**. This puts SI's original media files back.
-4. In FM27, set **Preferences > Language** back to **English**.
+4. In FM27, set **Preferences > Language** back to **English**. You can then delete `FM27 Media Mod 1.ltf` (and `.ltc`) from `Documents\Sports Interactive\Football Manager 27\languages`.
 5. Only if no other mod needs BepInEx: delete `BepInEx`, `dotnet`, `winhttp.dll`, `doorstop_config.ini`, `.doorstop_version` and `changelog.txt` from the game folder. Leave `version.dll` alone if another mod installed it.
 
 ## Works with

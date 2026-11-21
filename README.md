@@ -21,10 +21,23 @@ See **[INSTALL.md](INSTALL.md)**. It covers both cases: BepInEx already installe
 | Folder | What it is |
 |---|---|
 | `src/PressRoom` | The main plugin: press lead-ins and callbacks, the press pack, the Media Office, memory per save |
+| `src/Tabloid` | Headlines and The Terraces: your own fans reacting in their club's voice |
 | `src/MediaLab` | Press-conference actions: storm out, no comment, wrap it up |
 | `src/TeamTalkFilter` | Team-talk tidying and filters |
+| `src/Builder` | The **builder**: a BepInEx preloader patcher that makes the mod's language file and media changes from your own copy of FM27 |
+| `data` | The builder's data: the mod's own lines and patches (no Sports Interactive text) |
+| `tools/builder` | How the data is made and checked |
+| `third_party/ZstdSharp` | [ZstdSharp](https://github.com/oleg-st/ZstdSharp) (MIT), used to read and write FM's archives |
 
-More is coming before the beta: the fans and headlines layer, and the **builder**, which makes the mod's language file and media changes from your own copy of FM27 on first launch. The mod never ships Sports Interactive's files.
+### How the builder works
+
+The mod never ships Sports Interactive's files. Each time FM starts, the builder checks whether anything needs doing (first run, an SI patch, a mod update), and only then:
+
+- **Language:** takes SI's own English from your game files and FM's template from your languages folder, applies the mod's lines, and writes the language **English (FM27 Media Mod 1)**.
+- **Questions, chats and commentary:** backs up SI's `media.fmf` and `simatch.fmf`, applies the mod's patches, writes them back, and moves FM's caches aside so it rebuilds them.
+- **Safety:** if an SI patch has changed a file the mod patches, so that a change no longer fits, the builder leaves SI's files alone and says so in `BepInEx\FM27MediaMod\builder.log`.
+
+Most launches take no time at all; a build takes about 15 to 30 seconds.
 
 ## Building from source
 
@@ -35,6 +48,8 @@ The plugins are C# BepInEx 6 (Unity IL2CPP) plugins. Build against your own FM27
 - `<FM27>\BepInEx\interop` (the assemblies BepInEx generates from the game; never commit these).
 
 Interop assemblies are generated on your machine from your copy of the game, which is why they are not in this repository.
+
+The builder (`src/Builder` plus `third_party/ZstdSharp`) needs only the .NET runtime and `BepInEx\core` (BepInEx.Core, BepInEx.Preloader.Core, Mono.Cecil). Compile with unsafe code allowed and `NET6_0_OR_GREATER;NET5_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER` defined.
 
 ## Support
 

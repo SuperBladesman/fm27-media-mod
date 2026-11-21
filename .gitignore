@@ -26,6 +26,10 @@ doorstop_config.ini
 *.fm
 saves/
 
+# ...except the mod's own data for the builder (our lines and patches only; no SI text)
+!data/*.tsv
+!data/*.ltf
+
 # Editors and OS
 .vs/
 .vscode/
