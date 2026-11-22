@@ -2,6 +2,8 @@
 
 > **Public beta: v0.9.0-beta.** Download it from the [Releases page](https://github.com/SuperBladesman/fm27-media-mod/releases); install steps are in [INSTALL.md](INSTALL.md).
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H8C42B2XK0)
+
 A mod for **Football Manager 27** that makes the media and dressing-room world feel like it's about *your* manager, and that it **remembers**.
 
 - **Press conferences that remember.** Journalists bring back what you said weeks ago, notice when you dodge, walk out or send your assistant, and carry grudges or soften up depending on how you treat them.
@@ -55,7 +57,7 @@ The builder (`src/Builder` plus `third_party/ZstdSharp`) needs only the .NET run
 
 The mod is free and will stay free: no paid features, no early access, and nothing in the game asks for money.
 
-If it adds something to your saves and you'd like to say thanks, you can buy me a coffee on [Ko-fi](https://ko-fi.com/superbladesman) (also behind the **Sponsor** button at the top of this page). Entirely optional, always appreciated.
+If it adds something to your saves and you'd like to say thanks, you can buy me a coffee on [Ko-fi](https://ko-fi.com/superbladesman), with the button at the top of this page or the **Sponsor** button. Entirely optional, always appreciated.
 
 Bug reports and ideas are just as welcome: open an issue here.
 
