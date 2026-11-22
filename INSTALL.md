@@ -81,7 +81,7 @@ Most options are on the Media Office's **Settings** tab. The rest are in `BepInE
 
 1. Close FM27.
 2. Delete the four `FM27MediaMod ...` folders from `BepInEx\plugins`, the `FM27MediaMod Builder` folder from `BepInEx\patchers`, and the `BepInEx\FM27MediaMod` folder.
-3. Steam: right-click FM27 > **Properties** > **Installed Files** > **Verify integrity of game files**. This puts SI's original media files back.
+3. Steam: right-click FM27 > **Properties** > **Installed Files** > **Verify integrity of game files**. This puts SI's original media files back. It also removes any other mod's `simatch.fmf` or `media.fmf`, so copy those back in afterwards if you use one.
 4. In FM27, set **Preferences > Language** back to **English**. You can then delete `FM27 Media Mod 1.ltf` (and `.ltc`) from `Documents\Sports Interactive\Football Manager 27\languages`.
 5. Only if no other mod needs BepInEx: delete `BepInEx`, `dotnet`, `winhttp.dll`, `doorstop_config.ini`, `.doorstop_version` and `changelog.txt` from the game folder. Leave `version.dll` alone if another mod installed it.
 
@@ -90,6 +90,9 @@ Most options are on the Media Office's **Settings** tab. The rest are in `BepInE
 - BassyBoy's stadium pack, which installs BepInEx itself (see Step 1).
 - Heffem Academy Manager.
 - Other BepInEx plugins, as long as only one copy of BepInEx is installed.
+- **Other mods that replace `simatch.fmf` or `media.fmf`** (match-rating or match-engine mods, for example), as long as they change different files inside the archive. This mod changes only `events/match_events.xml` in `simatch.fmf`, and the press, chat and interview files in `media.fmf`. Install the other mod's file, then start FM: the builder keeps a copy of it and adds this mod's changes on top. Checked with the *Realistic Match Ratings & Smarter AI Selection Mod*.
+  - After an SI patch or a Steam verify, copy the other mod's file back in (once it has been updated for the patch). The builder adds this mod again at the next start.
+  - If the other mod changes the same file inside the archive, the builder leaves the game's file as it is and says so in `builder.log`.
 
 ## Known limits (beta)
 
