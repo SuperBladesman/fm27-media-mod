@@ -1,4 +1,4 @@
-// FM27 Media Mod - the press pack (Press Room 0.10). Personal single-player use only.
+// FM27 Media Mod - the press pack (Press Room 0.10). MIT licence (see LICENSE).
 // Until 0.9 every answer you gave earned +1 with whoever asked it, so everyone ended up loving you. Now each journalist
 // has a character and wants something, and how you get on is worked out again from everything on the record:
 //   - what you say matters: red tops and phone-ins want a story, broadsheets candour, local press loyalty, the

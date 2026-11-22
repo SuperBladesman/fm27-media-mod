@@ -1,4 +1,4 @@
-// FM27 Media Mod - The Terraces (Tabloid 0.6). Personal single-player use only.
+// FM27 Media Mod - The Terraces (Tabloid 0.6). MIT licence (see LICENSE).
 // SI's Top Reactions are generic one-liners from any club anywhere. The game itself knows much more about a club's fans:
 // who they are (Core, Family, Fair Weather, Corporate, Casual, Hardcore), how much say they have, what they expect
 // (culture & expectations), how they feel about each part of the club, what they remember (highlights and criticisms),

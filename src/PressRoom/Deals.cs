@@ -1,4 +1,4 @@
-// FM27 Media Mod - Agents speak (Press Room 0.7). Personal single-player use only.
+// FM27 Media Mod - Agents speak (Press Room 0.7). MIT licence (see LICENSE).
 // Every deal you are working on (a signing, a sale, a contract, a player you are pushing out) builds up a file:
 //   - what the agent has told you in private, in SI's own words: other clubs are interested, talks have gone on too long,
 //     no discount on wages, the deal is close;

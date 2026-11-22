@@ -1,4 +1,4 @@
-// FM27 Media Mod - emoji for the fans' posts. Personal single-player use only.
+// FM27 Media Mod - emoji for the fans' posts. MIT licence (see LICENSE).
 // FM's text settings have Unity's colour-emoji support switched off and no emoji font, so emoji in text are dropped.
 // Once, when the UI is up, this makes a font asset from Windows' own emoji font (Segoe UI Emoji) and adds it as the
 // emoji fallback in the game's text settings. Only characters FM's own fonts lack are drawn from it. If anything

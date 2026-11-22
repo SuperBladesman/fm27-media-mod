@@ -1,4 +1,4 @@
-// FM27 Media Mod - Media Office (part of the Press Room plugin; tabs, the weekly desk and costs since 0.13). Personal single-player use only.
+// FM27 Media Mod - Media Office (part of the Press Room plugin; tabs, the weekly desk and costs since 0.13). MIT licence (see LICENSE).
 // A page of your own, opened from the MEDIA OFFICE tab at the right of the screen:
 //   - appoint a head of media, whose approach (open door, gatekeeper, fixer) shapes how the press office behaves;
 //   - a press list built from everything you have said on the record: each outlet's journalists, how you get on,

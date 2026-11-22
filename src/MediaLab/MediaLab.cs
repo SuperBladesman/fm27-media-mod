@@ -1,4 +1,4 @@
-// FM27 Media Mod - Media Lab 0.1. Personal single-player use only. EXPERIMENTAL: save before using.
+// FM27 Media Mod - Media Lab 0.1. MIT licence (see LICENSE). EXPERIMENTAL: save before using.
 // Adds a MEDIA LAB button to FM27's main screen. Each button sends one of SI's own interop commands to the game engine
 // (media dumps, debug news, leak-to-press, pivotal moment, press conference) and logs what comes back:
 // game events for 10 s, and any files the game writes. It also logs every news / media / social text shown on screen,
@@ -16,7 +16,7 @@ using EV = FM.GamePlugin.InteropEventIDs;
 
 namespace FM27MediaMod
 {
-    [BepInPlugin(GUID, "FM27 Media Mod Media Lab", "0.6.1")]
+    [BepInPlugin(GUID, "FM27 Media Mod Media Lab", "0.6.2")]
     public class MediaLab : BasePlugin
     {
         public const string GUID = "uk.nik.fm27mediamod.medialab";
@@ -45,15 +45,17 @@ namespace FM27MediaMod
             var dir = Path.Combine(Paths.BepInExRootPath, "FM27MediaMod"); Directory.CreateDirectory(dir);
             var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             Out = new StreamWriter(Path.Combine(dir, "medialab_" + stamp + ".tsv"), false, new UTF8Encoding(false)) { AutoFlush = true };
-            MediaOut = new StreamWriter(Path.Combine(dir, "mediatext_" + stamp + ".tsv"), false, new UTF8Encoding(false)) { AutoFlush = true };
-            W("start", "media lab 0.6.1", "");
+            W("start", "media lab 0.6.2", "");
+            // 0.6.2 (release): the full screen-text log is for bug hunting only, so it is off unless asked for.
+            if (Config.Bind("Logs", "LogScreenText", false, "Write every news and media text shown on screen to BepInEx\\FM27MediaMod\\mediatext_<time>.tsv (large; for bug reports only).").Value)
+                MediaOut = new StreamWriter(Path.Combine(dir, "mediatext_" + stamp + ".tsv"), false, new UTF8Encoding(false)) { AutoFlush = true };
             Say = Config.Bind("Press conference", "HaveYourSay", false, "Show the HAVE YOUR SAY text box beside STORM OUT and NO COMMENT (off by default since 0.5.0).").Value;
-            Tests = Config.Bind("Press conference", "EngineTests", true, "0.6.0: show TEST: SEND ASSISTANT, one of SI's own press-conference commands we have never fired. It needs a second click. Turn off once tested.").Value;
+            Tests = Config.Bind("Press conference", "EngineTests", false, "Show TEST: SEND ASSISTANT, an engine test button for modders (needs a second click). Off by default since 0.6.2.").Value;
             WrapUp = Config.Bind("Press conference", "WrapItUp", true, "0.6.1: show WRAP IT UP, which ends a press conference or interview politely (SI's own early exit, proven 21 Nov 2026). It needs a second click. Press Room decides what the room makes of it.").Value;
             var h = new Harmony(GUID);
             foreach (var t in new[] { typeof(SendPatch), typeof(ReceivePatch), typeof(TextPatch), typeof(TextPatch_Apply), typeof(ExitPatch) })
                 try { h.PatchAll(t); } catch (Exception e) { Log.LogError(t.Name + ": " + e.Message); }
-            Log.LogInfo($"FM27 Media Mod Media Lab 0.6.1 loaded: one STORM OUT (confirm) / NO COMMENT{(WrapUp ? " / WRAP IT UP (confirm)" : "")} row per press conference{(Say ? " with HAVE YOUR SAY" : "")}{(Tests ? ", engine test SEND ASSISTANT" : "")}.");
+            Log.LogInfo($"FM27 Media Mod Media Lab 0.6.2 loaded: one STORM OUT (confirm) / NO COMMENT{(WrapUp ? " / WRAP IT UP (confirm)" : "")} row per press conference{(Say ? " with HAVE YOUR SAY" : "")}{(Tests ? ", engine test SEND ASSISTANT" : "")}.");
         }
 
         internal static void W(string kind, string a, string b)
@@ -449,7 +451,7 @@ if (SessionType == 6)
                         MediaLab.EnsureActionRow(item);
                     }
                 }
-                if (string.IsNullOrEmpty(txt) || txt.Length < 4) return;
+                if (MediaLab.MediaOut == null || string.IsNullOrEmpty(txt) || txt.Length < 4) return;   // 0.6.2: no log, no walk
                 var sb = new StringBuilder(); bool hit = false; VisualElement e = __instance;
                 for (int i = 0; i < 16 && e != null; i++, e = e.parent)
                 {

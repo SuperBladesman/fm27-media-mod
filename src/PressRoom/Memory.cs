@@ -1,4 +1,4 @@
-// FM27 Media Mod - Memory that follows your saves (Press Room 0.8). Personal single-player use only.
+// FM27 Media Mod - Memory that follows your saves (Press Room 0.8). MIT licence (see LICENSE).
 // The mod's memory (on the record, the media office, whispers, deals, grudges, people) lives in BepInEx\FM27MediaMod.
 // The game's save files don't carry it, so:
 //   - every time the game finishes a save (manual, autosave, save before quit), the memory is copied into

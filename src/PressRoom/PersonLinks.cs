@@ -1,4 +1,4 @@
-// FM27 Media Mod - shared decoder for SI's rich-text links. Personal single-player use only.
+// FM27 Media Mod - shared decoder for SI's rich-text links. MIT licence (see LICENSE).
 // A link is \u0001<base64 record>\u0002<visible name>\u0001. Decoded, a person's record reads
 // "Click to view <Full Name>'s profile"; clubs, nations and competitions read "Click to view <Name>" (no "profile").
 // The 4 bytes after the "ferd" marker are the object's id, stable for the save (top byte = type: 0x01 person, 0x18 club).

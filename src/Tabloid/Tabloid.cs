@@ -1,4 +1,4 @@
-// FM27 Media Mod - Tabloid Layer 0.1. Personal single-player use only.
+// FM27 Media Mod - Tabloid Layer 0.1. MIT licence (see LICENSE).
 // Every story is given an outlet type: red top (tabloid) or blue top (broadsheet). Red tops get rewritten headlines
 // (the same facts, louder verbs, capitals) and a red masthead band; blue tops keep the sober wording on a navy band.
 // Names and links inside a headline are kept exactly (FM marks them \x01<link data>\x02<name>\x01).
@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 
 namespace FM27MediaMod
 {
-    [BepInPlugin(GUID, "FM27 Media Mod Tabloid Layer", "0.6.6")]
+    [BepInPlugin(GUID, "FM27 Media Mod Tabloid Layer", "0.6.7")]
     public class Tabloid : BasePlugin
     {
         public const string GUID = "uk.nik.fm27mediamod.tabloid";
@@ -51,7 +51,7 @@ namespace FM27MediaMod
             try { new Harmony(GUID).PatchAll(typeof(HeadlinePatch)); } catch (Exception e) { Log.LogError("Tabloid layer not active: " + e.Message); }
             try { new Harmony(GUID).PatchAll(typeof(FanPatch)); } catch (Exception e) { Log.LogError("Fan reactions not active: " + e.Message); }
             try { new Harmony(GUID).PatchAll(typeof(HeadlinePatch_Apply)); new Harmony(GUID).PatchAll(typeof(FanPatch_Apply)); } catch (Exception e) { Log.LogWarning("Tabloid: ApplyText hooks not active (fine before the 17 Nov patch): " + e.Message); }
-            Log.LogInfo($"FM27 Media Mod Tabloid Layer 0.6.6 loaded (share {Share}%, capitals {Caps}, the terraces {Terraces.On}, extra fan posts {(Terraces.On ? 0 : Fans)}).");
+            Log.LogInfo($"FM27 Media Mod Tabloid Layer 0.6.7 loaded (share {Share}%, capitals {Caps}, the terraces {Terraces.On}, extra fan posts {(Terraces.On ? 0 : Fans)}).");
         }
 
         internal static void Fail(string where, Exception e) { if (Errors++ < 20) L.LogWarning($"[{where}] {e.GetType().Name}: {e.Message}"); }

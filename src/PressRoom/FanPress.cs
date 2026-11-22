@@ -1,4 +1,4 @@
-// FM27 Media Mod - the supporters in the press room (Press Room 0.8.3). Personal single-player use only.
+// FM27 Media Mod - the supporters in the press room (Press Room 0.8.3). MIT licence (see LICENSE).
 // The Tabloid layer reads the club's supporter screens into fans.tsv (who they are, their spokesperson, how much say they
 // have, what pleases and disappoints them, in SI's own words). Here a journalist now and then opens with what the
 // supporters' group is saying: once a conference at most, more often the more influence the supporters have on the board,

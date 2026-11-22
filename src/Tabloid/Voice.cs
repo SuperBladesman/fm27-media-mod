@@ -1,4 +1,4 @@
-// FM27 Media Mod - The Terraces: who says what under a story. Personal single-player use only.
+// FM27 Media Mod - The Terraces: who says what under a story. MIT licence (see LICENSE).
 // The lines are real fans' posts (from published fan-reaction round-ups, Reddit and forum threads), with real names swapped
 // for tokens and gendered words taken out, plus a few written in the same register. Each invented fan has a "hand":
 // some type in lower case, some shout when it goes well, some add emoji or the club's sign-off. Club words (nicknames,
@@ -87,7 +87,7 @@ namespace FM27MediaMod
 "Sheffield United\tdialect\tyorkshire\n" +
 "Sheffield United\tderby\tThe city is red ⚔️\n" +
 "Sheffield United\tderby\tPorkers beaten. Best feeling in the world.\n" +
-"Sheffield United\trival\tSheff Wed\tthe pigs|the porkers|Wendy|that lot from Swillsborough|Wednesday\n" +
+"Sheffield United\trival\tSheff Wed\tthe pigs|the porkers|Wendy|Wednesday\n" +
 "Sheffield United\trival\tLeeds\tdirty Leeds|Leeds\n" +
 "Sheffield United\trival\tNott'm Forest\tthe Tricky Trees|the scabs|Forest\n" +
 "Sheffield United\trival\tBarnsley\tthe dingles|Barnsley\n" +

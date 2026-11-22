@@ -1,12 +1,10 @@
-# Installing FM27 Media Mod (beta)
+# Installing Super Bladesman's FM27 Media Mod (beta)
 
-> Working name; the release name is still to be chosen.
-
-FM27 Media Mod changes Football Manager 27's media and dressing-room world: press conferences, interviews, player and staff chats, team talks, news and fan reactions. It never touches the match engine.
+The mod changes Football Manager 27's media and dressing-room world: press conferences, interviews, player and staff chats, team talks, news and fan reactions. It never touches the match engine.
 
 ## What you need
 
-- **Football Manager 27 on Windows** (Steam or Epic). macOS is not supported in the beta.
+- **Football Manager 27 on Windows**, with the game in English. Tested on Steam; Epic should work but hasn't been tried. macOS is not supported in the beta.
 - **BepInEx 6 (bleeding edge, Unity IL2CPP, x64)**, the loader that runs code mods in FM27. The mod is tested with build **be.785**; newer builds should work.
 - About 5 minutes, plus a slow first launch while BepInEx prepares itself.
 
@@ -41,16 +39,16 @@ To check which build you have, open `BepInEx\LogOutput.log` in Notepad. The firs
 ## Step 3: Install the mod
 
 1. Close FM27.
-2. Download the latest `FM27-Media-Mod-<version>.zip` from the [Releases page](<repo URL>/releases).
+2. Download the latest `FM27-Media-Mod-<version>.zip` from the [Releases page](https://github.com/SuperBladesman/fm27-media-mod/releases).
 3. Extract it **into the game folder**, letting the zip's `BepInEx` folder merge with yours. You should end up with:
    - in `BepInEx\plugins`: `FM27MediaMod PressRoom`, `FM27MediaMod Tabloid`, `FM27MediaMod MediaLab`, `FM27MediaMod TeamTalkFilter`;
    - in `BepInEx\patchers`: `FM27MediaMod Builder` (the builder and its `data` folder).
-4. Start FM27. Before the main menu, the mod's **builder** runs once. It takes about 15 to 30 seconds, and FM may look frozen while it works. It:
+4. Start FM27. Before the main menu, the mod's **builder** runs once. It takes about 10 to 30 seconds, and FM may look frozen while it works. It:
    - writes the mod's language file, built from your own copy of FM27's English, into your languages folder;
    - updates the game's question, chat and commentary files (`media.fmf`, `simatch.fmf`), keeping copies of SI's originals in `BepInEx\FM27MediaMod\backups`;
    - moves FM's caches aside (into `_to_delete` beside them) so FM rebuilds them.
 
-   What it did is written to `BepInEx\FM27MediaMod\builder.log`.
+   What it did is written to `BepInEx\FM27MediaMod\builder.log`. After that it checks in under a second and does nothing unless something has changed.
 5. Go to **Preferences > Language** and choose **English (FM27 Media Mod 1)**. FM compiles it the first time, which takes a moment.
 6. Load your save, or start a new game. The **MEDIA** tab on the right-hand edge of the screen opens the Media Office.
 
@@ -99,10 +97,10 @@ Most options are on the Media Office's **Settings** tab. The rest are in `BepInE
 
 ## Reporting a problem
 
-Open an issue on GitHub. Please attach `BepInEx\LogOutput.log` and say which screen you were on. The logs can contain your save's folder path, so check them before posting if that matters to you.
+Open an [issue on GitHub](https://github.com/SuperBladesman/fm27-media-mod/issues). Please attach a screenshot, `BepInEx\LogOutput.log` and `BepInEx\FM27MediaMod\builder.log`, and say which screen you were on. The logs can contain your save's folder path, so check them before posting if that matters to you.
 
 ## Support the mod
 
-The mod is and will stay free, with no paid features or early access. If you'd like to say thanks, there's a **Sponsor** button at the top of the GitHub page (GitHub Sponsors and Ko-fi).
+The mod is and will stay free, with no paid features or early access. If you'd like to say thanks, there's a [Ko-fi page](https://ko-fi.com/superbladesman), also behind the **Sponsor** button at the top of the GitHub page.
 
-*FM27 Media Mod is a fan-made mod with no official link to SEGA or Sports Interactive. Football Manager is a trademark of Sports Interactive Limited.*
+*Super Bladesman's FM27 Media Mod is a fan-made mod with no official link to SEGA or Sports Interactive. Football Manager is a trademark of Sports Interactive Limited.*

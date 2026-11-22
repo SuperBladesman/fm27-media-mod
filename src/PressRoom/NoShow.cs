@@ -1,4 +1,4 @@
-// FM27 Media Mod - Press Room 0.13.3: sending the assistant. Personal single-player use only.
+// FM27 Media Mod - Press Room 0.13.3: sending the assistant. MIT licence (see LICENSE).
 // SI lets the manager send the assistant to a press conference from its invite (21 Nov 2026: SI's reply on the invite,
 // EventFmxNewsResponseAction, response 1; attending fires EventFmxStartPressConference instead). The mod remembers it:
 // one in six weeks is nothing, two and the room notices, three and it becomes the story. A journalist who was stood up

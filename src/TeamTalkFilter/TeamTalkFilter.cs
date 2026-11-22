@@ -1,4 +1,4 @@
-// FM27 Media Mod - Team Talk Filter. Personal single-player use only.
+// FM27 Media Mod - Team Talk Filter. MIT licence (see LICENSE).
 // Team-talk options carry a tag at the start of their text (from the v0.15+ language file, e.g. "CALM – ...").
 // This plugin (1) marks each option with a coloured bar for its group, (2) adds a row of filter buttons above them
 // (All, ROAST, CRITICISE, ...) that only show or hide options and never pick one, and (3) removes the tag from the

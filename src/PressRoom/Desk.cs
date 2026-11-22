@@ -1,4 +1,4 @@
-// FM27 Media Mod - the press office's week (Press Room 0.13). Personal single-player use only.
+// FM27 Media Mod - the press office's week (Press Room 0.13). MIT licence (see LICENSE).
 // The Media Office's clock and budget: about 3 hours of press-office time a week, spent on the office's own actions
 // (bans, favours, planting, keeping things quiet, briefing back, closing ranks, taking on a mission). Looking is free;
 // SI's own chats and commands are never charged. Every action has a cost, a cap and a cool-down, and every chance

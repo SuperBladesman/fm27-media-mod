@@ -1,4 +1,4 @@
-// FM27 Media Mod - Press Room 0.4 "On the record". Personal single-player use only.
+// FM27 Media Mod - Press Room 0.4 "On the record". MIT licence (see LICENSE).
 // 0.9.0: the dressing room (Incidents.cs): discontent the news reports about your players is kept per save, shown in the
 // MEDIA OFFICE and raised by the press; and when a journalist quotes your earlier answer and that same answer is offered
 // again, the option reads "I still feel the same" instead of repeating itself (what you said is still kept in SI's words).

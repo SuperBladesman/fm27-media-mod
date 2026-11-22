@@ -1,6 +1,6 @@
-# FM27 Media Mod
+# Super Bladesman's FM27 Media Mod
 
-> Working name. **Status: in development. A public beta is on the way.**
+> **Public beta: v0.9.0-beta.** Download it from the [Releases page](https://github.com/SuperBladesman/fm27-media-mod/releases); install steps are in [INSTALL.md](INSTALL.md).
 
 A mod for **Football Manager 27** that makes the media and dressing-room world feel like it's about *your* manager, and that it **remembers**.
 
@@ -20,7 +20,7 @@ See **[INSTALL.md](INSTALL.md)**. It covers both cases: BepInEx already installe
 
 | Folder | What it is |
 |---|---|
-| `src/PressRoom` | The main plugin: press lead-ins and callbacks, the press pack, the Media Office, memory per save |
+| `src/PressRoom` | The main plugin: press lead-ins and callbacks, the press pack, the Media Office, memory per save (`voices.tsv` ships beside its DLL) |
 | `src/Tabloid` | Headlines and The Terraces: your own fans reacting in their club's voice |
 | `src/MediaLab` | Press-conference actions: storm out, no comment, wrap it up |
 | `src/TeamTalkFilter` | Team-talk tidying and filters |
@@ -37,7 +37,7 @@ The mod never ships Sports Interactive's files. Each time FM starts, the builder
 - **Questions, chats and commentary:** backs up SI's `media.fmf` and `simatch.fmf`, applies the mod's patches, writes them back, and moves FM's caches aside so it rebuilds them.
 - **Safety:** if an SI patch has changed a file the mod patches, so that a change no longer fits, the builder leaves SI's files alone and says so in `BepInEx\FM27MediaMod\builder.log`.
 
-Most launches take no time at all; a build takes about 15 to 30 seconds.
+Most launches take under a second; a build takes about 10 to 30 seconds.
 
 ## Building from source
 
@@ -63,4 +63,4 @@ Bug reports and ideas are just as welcome: open an issue here.
 
 The code is released under the [MIT licence](LICENSE).
 
-*FM27 Media Mod is a fan-made mod with no official link to SEGA or Sports Interactive. Football Manager is a trademark of Sports Interactive Limited; the game, its data and its text belong to SEGA and Sports Interactive.*
+*Super Bladesman's FM27 Media Mod is a fan-made mod with no official link to SEGA or Sports Interactive. Football Manager is a trademark of Sports Interactive Limited; the game, its data and its text belong to SEGA and Sports Interactive.*

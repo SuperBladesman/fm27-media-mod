@@ -1,4 +1,4 @@
-// FM27 Media Mod - The dressing room (Press Room 0.9.0). Personal single-player use only.
+// FM27 Media Mod - The dressing room (Press Room 0.9.0). MIT licence (see LICENSE).
 // Chain B of the project doc "Design - real-trigger misbehaviour": the discontent stories SI's engine writes about
 // YOUR players (a player forcing a move, a relationship with the manager breaking down, team-mates unhappy with how it
 // has been handled, a training-ground bust-up, a split dressing room) are read off the news as the game shows them,

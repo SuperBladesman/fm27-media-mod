@@ -1,4 +1,4 @@
-// FM27 Media Mod - Word gets out (Press Room 0.6). Personal single-player use only.
+// FM27 Media Mod - Word gets out (Press Room 0.6). MIT licence (see LICENSE).
 // What you say in agent, director-of-football and player chats is overheard: the stance the game labels your choice
 // with (Desperate, Keen, Curious; Agree, Contest, Stall; Convince, Threaten, Back Down) and the player it is about.
 // Each becomes a whisper. At the next press conference one journalist may open with it ("Word is you're desperate to
