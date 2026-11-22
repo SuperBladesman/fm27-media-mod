@@ -53,7 +53,11 @@ The builder (`src/Builder` plus `third_party/ZstdSharp`) needs only the .NET run
 
 ## Support
 
-The mod is free and will stay free: no paid features, no early access. A **Sponsor** button for GitHub Sponsors and Ko-fi will appear here once those are set up.
+The mod is free and will stay free: no paid features, no early access, and nothing in the game asks for money.
+
+If it adds something to your saves and you'd like to say thanks, you can buy me a coffee on [Ko-fi](https://ko-fi.com/superbladesman) (also behind the **Sponsor** button at the top of this page). Entirely optional, always appreciated.
+
+Bug reports and ideas are just as welcome: open an issue here.
 
 ## Licence
 
