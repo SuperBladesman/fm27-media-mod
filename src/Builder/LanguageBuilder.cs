@@ -82,7 +82,7 @@ namespace FM27MediaMod.Builder
                 using (var a = new StreamReader(Path.Combine(dataDir, "lang_append.ltf"), new UTF8Encoding(false), true))
                 {
                     string line;
-                    while ((line = a.ReadLine()) != null) { w.WriteLine(line); res.Appended++; }
+                    while ((line = a.ReadLine()) != null) { w.WriteLine(line); if (line.StartsWith("STR-1:", StringComparison.Ordinal)) res.Appended++; }   // 1.0.1: count entries, not file lines
                 }
             }
             if (File.Exists(outFile)) File.Delete(outFile);

@@ -8,7 +8,7 @@ using BepInEx.Preloader.Core.Patching;
 
 namespace FM27MediaMod.Builder
 {
-    [PatcherPluginInfo("uk.nik.fm27mediamod.builder", "FM27 Media Mod Builder", "1.0.0")]
+    [PatcherPluginInfo("uk.nik.fm27mediamod.builder", "FM27 Media Mod Builder", "1.0.1")]
     public class BuilderPatcher : BasePatcher
     {
         // data\ beside this DLL (BepInEx\patchers\FM27MediaMod Builder\data), wherever BepInEx loaded it from
@@ -46,7 +46,7 @@ namespace FM27MediaMod.Builder
                     MoveCaches = Config.Bind("Builder", "MoveCachesAfterMediaBuild", true, "After a media build, move FM's caches aside (into _to_delete beside them) so FM rebuilds them.").Value,
                 };
                 var t = System.Diagnostics.Stopwatch.StartNew();
-                Say("FM27 Media Mod Builder 1.0.0 starting");
+                Say("FM27 Media Mod Builder 1.0.1 starting");
                 BuildRunner.Run(s, Say);
                 Say($"builder finished in {t.Elapsed.TotalSeconds:F1}s");
             }

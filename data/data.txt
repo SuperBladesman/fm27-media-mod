@@ -1,4 +1,4 @@
-version=1
+version=2
 matches=FM27 27.1.0 (SI patch of 17 Nov 2026)
-language=v0.64 (21 Nov 2026)
-media=v0.30 (20 Nov 2026)
+language=v0.65 (v0.64 + 448 pronoun fixes + 8 wording fixes)
+media=v0.30

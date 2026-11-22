@@ -84,7 +84,7 @@ namespace FM27MediaMod.Builder
                     v = cur[a];
                     CheckClean(a, new FmfArchive(v), patchFile);   // before anything is labelled as SI's original
                     var b = BackupPath(s, a, curMd5[a]);
-                    if (!File.Exists(b)) { Directory.CreateDirectory(Path.GetDirectoryName(b)); File.WriteAllBytes(b, v); log($"media: SI's {a} backed up as {Path.GetFileName(b)}"); }
+                    if (!File.Exists(b)) { Directory.CreateDirectory(Path.GetDirectoryName(b)); File.WriteAllBytes(b, v); log($"media: the game's {a} (SI's, or another mod's) backed up as {Path.GetFileName(b)}"); }
                 }
                 vanBytes[a] = v; vanilla[a] = new FmfArchive(v);
             }
@@ -177,6 +177,12 @@ namespace FM27MediaMod.Builder
             // FM compiles the .ltf into an .ltc of the same name the first time it is chosen: move a stale one aside
             var ltc = Path.ChangeExtension(outFile, ".ltc");
             if (File.Exists(ltc)) { var old = ltc + ".old"; if (File.Exists(old)) File.Delete(old); File.Move(ltc, old); log("language: old compiled file moved aside so FM compiles the new one"); }
+            // 1.0.1: an earlier data version's language stays where it is (FM's behaviour when the chosen language disappears
+            // is untested), but the log says which one to choose
+            var prev = Get(st, "lang.file");
+            if (!string.IsNullOrEmpty(prev)) prev = Path.Combine(s.LanguagesDir, Path.GetFileName(prev));
+            if (!string.IsNullOrEmpty(prev) && !string.Equals(prev, outFile, StringComparison.OrdinalIgnoreCase) && File.Exists(prev))
+                log("language: the earlier " + Path.GetFileNameWithoutExtension(prev) + " is still in your languages folder; choose " + langName + " instead (you can delete the old .ltf and .ltc with FM closed)");
             st["lang.english"] = engMd5; st["lang.template"] = tsig; st["lang.data"] = dataVer; st["lang.file"] = outFile;
             log($"language: built \"{langName}\" ({r.Rows} mod lines, {r.Appended} new lines); choose it in Preferences > Language");
         }

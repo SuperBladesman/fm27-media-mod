@@ -51,12 +51,18 @@ These sit in the game folder itself, beside `fm.exe`, not inside `BepInEx`. **Ca
    - moves FM's caches aside (into `_to_delete` beside them) so FM rebuilds them.
 
    What it did is written to `BepInEx\FM27MediaMod\builder.log`. After that it checks in under a second and does nothing unless something has changed.
-5. Go to **Preferences > Language** and choose **English (FM27 Media Mod 1)**. FM compiles it the first time, which takes a moment.
+5. Go to **Preferences > Language** and choose **English (FM27 Media Mod 2)** (the number is the mod's data version; always pick the highest). FM compiles it the first time, which takes a moment.
 6. Load your save, or start a new game. The **MEDIA** tab on the right-hand edge of the screen opens the Media Office.
 
 If `builder.log` says FM's template (`example.ltf`) isn't there yet, FM hasn't created it so far: start FM once, quit, and start it again.
 
 ---
+
+## Updating the mod
+
+1. Close FM27 and extract the new zip over the old one, letting the folders merge.
+2. Start FM. The builder notices the new data and rebuilds (10 to 30 seconds).
+3. If the language number has gone up, choose the new one in **Preferences > Language**. The older `FM27 Media Mod <n>.ltf` stays in your languages folder; you can delete it (and its `.ltc`) with FM closed.
 
 ## After an FM27 patch
 
@@ -82,7 +88,7 @@ Most options are on the Media Office's **Settings** tab. The rest are in `BepInE
 1. Close FM27.
 2. Delete the four `FM27MediaMod ...` folders from `BepInEx\plugins`, the `FM27MediaMod Builder` folder from `BepInEx\patchers`, and the `BepInEx\FM27MediaMod` folder.
 3. Steam: right-click FM27 > **Properties** > **Installed Files** > **Verify integrity of game files**. This puts SI's original media files back. It also removes any other mod's `simatch.fmf` or `media.fmf`, so copy those back in afterwards if you use one.
-4. In FM27, set **Preferences > Language** back to **English**. You can then delete `FM27 Media Mod 1.ltf` (and `.ltc`) from `Documents\Sports Interactive\Football Manager 27\languages`.
+4. In FM27, set **Preferences > Language** back to **English**. You can then delete the `FM27 Media Mod <n>.ltf` files (and `.ltc`) from `Documents\Sports Interactive\Football Manager 27\languages`.
 5. Only if no other mod needs BepInEx: delete `BepInEx`, `dotnet`, `winhttp.dll`, `doorstop_config.ini`, `.doorstop_version` and `changelog.txt` from the game folder. Leave `version.dll` alone if another mod installed it.
 
 ## Works with

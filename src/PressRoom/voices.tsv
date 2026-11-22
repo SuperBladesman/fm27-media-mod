@@ -942,10 +942,10 @@
 302913	journo:digital	[%person#3]'s money comments have fans online worried. Is the club in trouble?
 302913	journo:attack	Is the club skint?
 302913	journo:cheer	The finances are under control, aren't they?
-302916	base	[%person#2-surname] has idolised [%person#3] and now gets to play alongside them. Could the student reach the level of [%person#3-surname]?
+302916	base	[%person#2-surname] has idolised [%person#3] and now gets to play alongside [%person#3-him]. Could the student reach the level of [%person#3-surname]?
 302916	journo:redtop	[%person#2-surname] idolises [%person#3]. Can the pupil become the master?
-302916	journo:phonein	[%person#2-surname] grew up watching [%person#3]. Can they reach that level?
-302916	journo:broadsheet	Could [%person#2-surname] reach the level of [%person#3-surname], the player they modelled their game on?
+302916	journo:phonein	[%person#2-surname] grew up watching [%person#3]. Can [%person#2-surname] reach that level?
+302916	journo:broadsheet	Could [%person#2-surname] reach the level of [%person#3-surname], a childhood idol?
 302916	journo:broadcast	Can [%person#2-surname] reach [%person#3-surname]'s level?
 302916	journo:local	[%person#2-surname] and [%person#3] in the same side. Can the young one reach that standard?
 302916	journo:digital	The [%person#2-surname] and [%person#3] clips are everywhere. Can the student catch the master?
@@ -21724,7 +21724,7 @@
 609183	journo:local	Supporters want fairness. Was [%person#2] treated fairly?
 609183	journo:attack	Have you mistreated [%person#2]?
 609183	journo:cheer	It's a misunderstanding!
-609184	base	What's next now [%person#2] wants out over the way the player says they've been treated?
+609184	base	What's next now [%person#2] wants out over the way the player says [%person#2-he]'s been treated?
 609184	journo:redtop	Treatment row!
 609184	journo:phonein	Callers want to know how [%person#2] was treated. How?
 609184	journo:broadsheet	What are the next steps after [%person#2]'s complaints about treatment?
@@ -22402,11 +22402,11 @@
 609628	journo:attack	Is [%person#2] just a stopgap?
 609628	journo:redtop	[%person#2]'s [%number#1-nth_text] club! What are you getting?
 609628	journo:digital	[%person#2]'s [%number#1-nth_text] club. What's different this time?
-609629	base	This is [%person#2]'s [%number#1-nth_text] club. Are [%person#1-you] getting a player past their best?
+609629	base	This is [%person#2]'s [%number#1-nth_text] club. Are [%person#1-you] getting a player past [%person#2-his] best?
 609629	journo:redtop	Is [%person#2] on the way down?
-609629	journo:broadsheet	Is there a risk [%person#2] is in decline as they join their [%number#1-nth_text] club?
-609629	journo:broadcast	Is [%person#2] past their best?
-609629	journo:local	Will the faithful be getting [%person#2] past their best?
+609629	journo:broadsheet	Is there a risk [%person#2] is in decline, arriving at a [%number#1-nth_text] club?
+609629	journo:broadcast	Is [%person#2] past [%person#2-his] best?
+609629	journo:local	Will the faithful be getting [%person#2] past [%person#2-his] best?
 609629	journo:digital	Fans online think [%person#2] is past it. Are they?
 609629	journo:attack	Have you bought a player in decline?
 609641	base	[%person#2] is being tipped as a future star. How pleased are [%person#1-you] to land the player?
@@ -22707,7 +22707,7 @@
 662339	journo:local	Our readers think [%person#3] is a dream. Why do you think otherwise?
 662339	journo:attack	Will chasing [%person#3] make [%person#1-yours] look silly?
 662339	journo:cheer	Aim for the stars with [%person#3]?
-662363	base	There was space, yet new signing [%person#2] isn't in the [%comp#1-short] squad. Why sign the player and then leave them out?
+662363	base	There was space, yet new signing [%person#2] isn't in the [%comp#1-short] squad. Why sign the player and then leave [%person#2-him] out?
 662363	journo:redtop	[%person#2] left out!
 662363	journo:phonein	Callers want to know why [%person#2] was omitted. Why?
 662363	journo:broadsheet	Why was [%person#2] excluded despite space in the squad?

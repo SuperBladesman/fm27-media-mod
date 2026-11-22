@@ -48728,8 +48728,8 @@ STR-1: [%person#manager-surname] claps loudly to snap the players out of it![%te
 KEY-870066: [%person#manager-surname] isn't hiding the frustration. Wake up, out there![%team#1-hidden]
 STR-1: [%person#manager-surname] isn't hiding the frustration. Wake up, out there![%team#1-hidden]
 
-KEY-354806: [%person#1-I]'m delighted with the result and the performance. Everyone knew how much this match mattered, and they rose to the occasion
-STR-1: [%person#1-I]'m delighted with the result and the performance. Everyone knew how much this match mattered, and they rose to the occasion
+KEY-354806: That's the result and the performance [%person#1-I] wanted. Everyone knew what this one meant, and the players stood up to it.
+STR-1: That's the result and the performance [%person#1-I] wanted. Everyone knew what this one meant, and the players stood up to it.
 
 KEY-821001: After a performance like that, people will be talking about [%team#1-short] winning the league. Is that the aim now?
 STR-1: After a performance like that, people will be talking about [%team#1-short] winning the league. Is that the aim now?
