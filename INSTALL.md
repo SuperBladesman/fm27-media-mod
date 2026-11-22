@@ -22,10 +22,12 @@ You **already have BepInEx** if you see **all** of these:
 - a `dotnet` folder;
 - **either** `winhttp.dll` **or** `version.dll` (some mods, such as BassyBoy's stadium pack, install BepInEx with `version.dll`).
 
-To check which build you have, open `BepInEx\LogOutput.log` in Notepad. The first line reads something like `BepInEx 6.0.0-be.785`.
+These sit in the game folder itself, beside `fm.exe`, not inside `BepInEx`. **Can't see either one?** Windows hides file extensions by default, so the file may show as just **winhttp** or **version** (type: *Application extension*). In File Explorer, choose **View > Show > File name extensions** (Windows 10: tick **File name extensions** on the View tab) to see the `.dll`.
 
-- **You have it:** skip to **Step 3**. Do **not** install a second copy, and never have both `winhttp.dll` and `version.dll` in the game folder.
-- **You don't:** do **Step 2** first.
+**The surest test:** open `BepInEx\LogOutput.log` in Notepad. If its date changes each time you start FM, BepInEx is working. Its first line also shows your build, something like `BepInEx 6.0.0-be.785`.
+
+- **LogOutput.log updates when you start FM:** you have BepInEx. Skip to **Step 3**. Do **not** install a second copy, and never have both `winhttp.dll` and `version.dll` in the game folder.
+- **No LogOutput.log, or it never updates:** BepInEx isn't loading. Do **Step 2** first.
 
 ## Step 2: Install BepInEx (only if you don't have it)
 
