@@ -36,3 +36,4 @@ saves/
 *.user
 Thumbs.db
 .DS_Store
+!src/PressRoom/voices.tsv
