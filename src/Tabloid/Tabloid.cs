@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 
 namespace FM27MediaMod
 {
-    [BepInPlugin(GUID, "FM27 Media Mod Tabloid Layer", "0.6.7")]
+    [BepInPlugin(GUID, "FM27 Media Mod Tabloid Layer", "0.6.8")]
     public class Tabloid : BasePlugin
     {
         public const string GUID = "uk.nik.fm27mediamod.tabloid";
@@ -41,6 +41,8 @@ namespace FM27MediaMod
             }
             Terraces.Emoji = Config.Bind("Fans", "Emoji", true, "Let the fans use emoji, drawn from Windows' own emoji font (Segoe UI Emoji). Set to false to leave them out.").Value;
             Terraces.On = Config.Bind("Fans", "TheTerraces", true, "Write the fan posts under each story (SI's own Top Reactions slots) from the club's supporter profile, mood, expectations and memories, as SI's supporter screens show them. When on, the extra posts below are not added.").Value;
+            PairsFans.Enabled = Config.Bind("Fans", "PartnershipPosts", true, "0.6.8: if the Partnerships plugin is installed, now and then one fan post under our own match stories talks about a pair (split up, back together, clicking, breaking down).").Value;
+            PairsFans.Share = Config.Bind("Fans", "PartnershipShare", 45, "Percent of our match stories that get one partnership post (stable per story).").Value;
             Fans = Config.Bind("Fans", "ExtraReactions", 2, "Fan posts of our own added once under each story's Top Reactions, after SI's (0 = none, at most 2).").Value;
             if (Fans > 2) Fans = 2;
             foreach (var (key, def, who) in new[] {
@@ -51,7 +53,7 @@ namespace FM27MediaMod
             try { new Harmony(GUID).PatchAll(typeof(HeadlinePatch)); } catch (Exception e) { Log.LogError("Tabloid layer not active: " + e.Message); }
             try { new Harmony(GUID).PatchAll(typeof(FanPatch)); } catch (Exception e) { Log.LogError("Fan reactions not active: " + e.Message); }
             try { new Harmony(GUID).PatchAll(typeof(HeadlinePatch_Apply)); new Harmony(GUID).PatchAll(typeof(FanPatch_Apply)); } catch (Exception e) { Log.LogWarning("Tabloid: ApplyText hooks not active (fine before the 17 Nov patch): " + e.Message); }
-            Log.LogInfo($"FM27 Media Mod Tabloid Layer 0.6.7 loaded (share {Share}%, capitals {Caps}, the terraces {Terraces.On}, extra fan posts {(Terraces.On ? 0 : Fans)}).");
+            Log.LogInfo($"FM27 Media Mod Tabloid Layer 0.6.8 loaded (share {Share}%, capitals {Caps}, the terraces {Terraces.On}, extra fan posts {(Terraces.On ? 0 : Fans)}).");
         }
 
         internal static void Fail(string where, Exception e) { if (Errors++ < 20) L.LogWarning($"[{where}] {e.GetType().Name}: {e.Message}"); }

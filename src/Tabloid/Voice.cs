@@ -158,6 +158,7 @@ namespace FM27MediaMod
                     if (Lines.Rival.TryGetValue(seg + "/" + key, out var rp)) text = Pick(rp, x);
                 }
             }
+            if (text == null && s.Ours) text = PairsFans.Line(s, slot, h, used);   // 0.6.8: the fans on your partnerships
             if (text == null && s.Kind == "signing" && s.Loan) text = Line(seg, "loan", x);
             if (text == null) text = Line(seg, s.Kind, x);
             if (text == null) return (null, null, seg);

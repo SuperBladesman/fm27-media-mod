@@ -24,7 +24,7 @@ namespace FM27MediaMod
     [BepInPlugin(GUID, "FM27 Media Mod Press Room", Version)]
     public class PressRoom : BasePlugin
     {
-        internal const string Version = "0.13.4";
+        internal const string Version = "0.15.1";
         public const string GUID = "uk.nik.fm27mediamod.pressroom";
         internal static BepInEx.Logging.ManualLogSource L;
         internal static int LeadShare; internal static bool Pills, Briefing;
@@ -47,7 +47,12 @@ namespace FM27MediaMod
             Pack.Harsh = harsh.StartsWith("g") ? 0 : harsh.StartsWith("b") ? 2 : 1;
             Pack.PerConference = Config.Bind("Press pack", "OpenersPerConference", 2, "Most questions per press conference that open with a journalist's own edge (a U-turn thrown back, a feud, the pressure on you).").Value;
             Incidents.Enabled = Config.Bind("Dressing room", "Enabled", true, "Discontent the news reports about your players (wanting out, falling-outs with you or team-mates, team-mates unhappy, training-ground bust-ups) is kept per save, listed in the MEDIA OFFICE and raised by the press until the game reports it settled.").Value;
+            Reactions.MapScreen = Config.Bind("Dressing room", "MapChatScreen", false, "Log the chat screen's texts once per kind of chat, after a reply (for mapping team meetings).").Value;
             Incidents.PerConference = Config.Bind("Dressing room", "PerConference", 1, "Most questions per press conference that open with a dressing-room story (0 = never).").Value;
+            Medical.Enabled = Config.Bind("Treatment Room", "Enabled", true, "0.13.5: if the Treatment Room plugin is installed, the press may raise its medical stories about your players (a recurring problem, a forecast overrun, a comeback, missing from training, a player not rested who then broke down). Each is raised once.").Value;
+            Medical.PerConference = Config.Bind("Treatment Room", "PerConference", 1, "Most questions per press conference that open with a medical story (0 = never).").Value;
+            Pairs.Enabled = Config.Bind("Partnerships", "Enabled", true, "0.13.6: if the Partnerships plugin is installed, the press may raise its stories about your pairs (split up or back together in the last match, newly recognised, starting to click, breaking down).").Value;
+            Pairs.PerConference = Config.Bind("Partnerships", "PerConference", 1, "Most questions per press conference that open with a partnership story (0 = never).").Value;
             Incidents.Expire = Config.Bind("Dressing room", "FadeAfterConferences", 10, "A story not seen in the news again for this many press conferences is dropped.").Value;
             Incidents.ClubSetting = Config.Bind("Dressing room", "OwnClub", "", "Your club as the news names it. Empty = read from the supporters screen (fans.tsv).").Value;
             Incidents.ManagerSetting = Config.Bind("Dressing room", "ManagerName", "", "Your manager's name as the news writes it. Empty = learned from chat screens.").Value;
@@ -74,6 +79,9 @@ namespace FM27MediaMod
             Word.Load();
             Deals.Load();
             Incidents.Load();
+            Reactions.Load();
+            Medical.Load();
+            Pairs.Load();
             Pack.Load();
             Voices.On = Config.Bind("Voices", "Enabled", true, "Re-voice marked press lines: the persona you pick in the MEDIA OFFICE for your answers, and the asking journalist's own way of putting marked questions. Off = SI's wording (the invisible markers are still removed).").Value;
             Voices.JournoOn = Config.Bind("Voices", "JournalistVoices", true, "Attack dogs and contrarians ask marked questions more sharply, cheerleaders more warmly.").Value;
@@ -562,6 +570,8 @@ namespace FM27MediaMod
             if (lead == null) lead = Word.Leak(q, CurOutlet, CurJournalist, k);
             if (lead == null) lead = Deals.Talk(q, CurOutlet, CurJournalist, k);
             if (lead == null) lead = FanPress.Talk(q, CurOutlet, CurJournalist, k);
+            if (lead == null) { lead = Medical.Talk(q, CurOutlet, CurJournalist, k, out var medSubject); if (lead != null) ExtraSubject = medSubject; }   // 0.13.5: the Treatment Room's stories
+            if (lead == null) { lead = Pairs.Talk(q, CurOutlet, CurJournalist, k, out var pairSubject); if (lead != null) ExtraSubject = pairSubject; }   // 0.13.6: the Partnerships plugin's stories
             if (lead == null) { lead = Incidents.Talk(q, CurOutlet, CurJournalist, k, out var incSubject); if (lead != null) ExtraSubject = incSubject; }
             if (lead == null) lead = Record.Callback(q, k);
             if (lead == null) lead = MediaOffice.Opener(CurOutlet, CurJournalist, h);
@@ -709,6 +719,7 @@ namespace FM27MediaMod
                 if (txt.IndexOf('\u2063') >= 0) txt = Voices.OnShown(__instance, txt);
                 if (PressRoom.Applying) return;
                 var n = __instance.name ?? "";
+                if (n == "text" && txt.Length <= 32) Reactions.OnText(__instance, txt);   // 0.13.9: a reaction word after a reply
                 // a question being re-shown (history, re-render) keeps its lead-in
                 if (PressRoom.Led.Count > 0 && PressRoom.Led.TryGetValue(txt, out var led) && Under(__instance, "NPCBubbleFrame", 6)) txt = led;
                 // an agent's bubble shown again keeps what they said about the papers
@@ -857,6 +868,7 @@ namespace FM27MediaMod
                 string best = null; Longest(b, ref best, 0);
                 if (best == null) return;
                 PressRoom.Picked = best; PressRoom.PickedAt = DateTime.Now; PressRoom.PickedGroup = null;
+                Reactions.Clicked(b);   // 0.13.9: the chat screen, for the reaction scan
                 // the label of the group the option sits in (Desperate, Keen, Agree, Threaten...)
                 string how2 = "nested";
                 VisualElement g = b;
@@ -942,7 +954,7 @@ namespace FM27MediaMod
                 var e = speakToActionEvent;
                 if ((int)e.Event == (int)FM.GamePlugin.InteropEventIDs.EventFmxConversationReplySelected)
                 {
-                    if (PressRoom.Picked != null && (DateTime.Now - PressRoom.PickedAt).TotalSeconds < 3) Word.OnChatReply(PressRoom.Picked, PressRoom.PickedGroup);
+                    if (PressRoom.Picked != null && (DateTime.Now - PressRoom.PickedAt).TotalSeconds < 3) { Word.OnChatReply(PressRoom.Picked, PressRoom.PickedGroup); Reactions.OnReply(PressRoom.Picked, PressRoom.PickedGroup); }
                     return;
                 }
                 if ((int)e.Event != (int)FM.GamePlugin.InteropEventIDs.EventFmxPressConferenceAnswerQuestion) return;

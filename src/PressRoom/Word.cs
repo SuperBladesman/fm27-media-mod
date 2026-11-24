@@ -146,7 +146,7 @@ namespace FM27MediaMod
                     var job = PressRoom.Visible(txt).Trim();
                     if (job == "Manager") { ManagerName = PendingWith; return; }   // a player chat or a press conference: the header is you
                     if (PendingWith.Length == 0) return;
-                    if (PendingWith != ChatWith) { ChatWith = PendingWith; ChatSubject = ""; }
+                    if (PendingWith != ChatWith) { ChatWith = PendingWith; ChatSubject = ""; ChatRenewal = ""; }
                     ChatRole = job.Length < 40 ? job : "";
                     return;
                 }
@@ -220,6 +220,9 @@ namespace FM27MediaMod
         // Convince / Threaten / Back Down head many player chats (asking a player to talk to a teammate, a loan club's complaint...):
         // only a line about the player leaving is a push-out
         internal static readonly Regex Leave = new Regex(@"\b(new club|another club|find a club|leave|leaving|move on|moving on|look elsewhere|elsewhere|no future|not (in|part of) (my|our|the) plans|surplus|sell you|sold|go out on loan|loan(ed)? (you )?out|transfer[- ]list\w*|available for transfer|offers? for you|exit)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // 0.13.10: talks on a new contract for one of your own players are not a transfer
+        internal static readonly Regex RenewWords = new Regex(@"\b(renew\w*|new (contract|deal)|contract (extension|renewal|talks)|extend\w*|extension|tie \w+ down|tied down)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        internal static string ChatRenewal = "";   // the chat (ChatWith) in which a new contract was raised
         static readonly Regex SellWords = new Regex(@"\b(sell|selling|offers?|move \w+ on|leave|available|market)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static readonly Regex TwoNames = new Regex(@"(?<![.!?]\s)(?<!^)\b(\p{Lu}[\p{L}'\-]+(?: \p{Lu}[\p{L}'\-]+)?) (\p{Lu}[\p{L}'\-]+)\b", RegexOptions.Compiled);
         static readonly HashSet<string> NotNames = new HashSet<string> { "I", "We", "The", "You", "He", "She", "They", "It", "Look", "Okay", "Right", "Fair", "Thanks", "Sheffield", "United", "City", "Town", "Football", "Club",
@@ -265,8 +268,11 @@ namespace FM27MediaMod
                 PressRoom.W("chat", (group ?? "no group") + " | " + (ChatRole.Length > 0 ? ChatRole + " " : "") + ChatWith, (who ?? "no player") + " | " + PressRoom.Visible(chosen));
                 if (string.IsNullOrEmpty(group)) { if (who != null && inLine && ChatRole == "Agent") Deals.Touch(DisplayFor(who), null, null); return; }
                 string kind = null;
-                if (Buy.Contains(group)) kind = SellWords.IsMatch(PressRoom.Visible(chosen)) ? "selling" : "interest";
-                else if (Haggle.Contains(group)) kind = "haggle";
+                var said = PressRoom.Visible(chosen);
+                if ((Buy.Contains(group) || Haggle.Contains(group)) && RenewWords.IsMatch(said)) { kind = "renewal"; ChatRenewal = ChatWith.Length > 0 ? ChatWith : "?"; }
+                else if (Buy.Contains(group)) kind = SellWords.IsMatch(said) ? "selling" : "interest";
+                else if (Haggle.Contains(group))
+                    kind = (ChatRenewal.Length > 0 && (ChatRenewal == ChatWith || ChatRenewal == "?")) || (who != null && Deals.SideOf(DisplayFor(who)) == "renewing") ? "renewal" : "haggle";
                 else if (Push.Contains(group) && Leave.IsMatch(PressRoom.Visible(chosen))) kind = "pushout";
                 if (kind == null) { if (who != null && inLine && ChatRole == "Agent") Deals.Touch(DisplayFor(who), null, null); return; }
                 if (who == null) { PressRoom.W("whisper", "no player found", group + " | " + PressRoom.Visible(chosen)); return; }
@@ -300,6 +306,13 @@ namespace FM27MediaMod
                 case "haggle/Agree": return "the " + p + " deal is close";
                 case "haggle/Contest": return "the " + p + " talks have turned awkward";
                 case "haggle/Stall": return "you're playing hardball over " + p;
+                case "renewal/Desperate": return "you're desperate to keep " + p;
+                case "renewal/Keen": return "you want " + p + " on a new contract";
+                case "renewal/Curious": return "you've asked what " + p + " wants from a new contract";
+                case "renewal/Interested": return "you've opened talks on a new contract for " + p;
+                case "renewal/Agree": return "a new contract for " + p + " is close";
+                case "renewal/Contest": return "the " + p + " contract talks have turned awkward";
+                case "renewal/Stall": return "you're playing hardball over a new contract for " + p;
                 case "pushout/Threaten": return "you've told " + p + " there's no future here";
                 case "pushout/Convince": return "you've told " + p + " to find a new club";
                 case "pushout/Back Down": return p + " talked you round";
@@ -376,7 +389,7 @@ namespace FM27MediaMod
         internal static void Reset()
         {
             All.Clear(); Personality.Clear(); Reputation.Clear(); Known.Clear();
-            ChatWith = ""; ChatRole = ""; ChatPlayer = ""; ChatSubject = ""; LastProfile = ""; PendingWith = "";
+            ChatWith = ""; ChatRole = ""; ChatPlayer = ""; ChatSubject = ""; LastProfile = ""; PendingWith = ""; ChatRenewal = "";
             LeakedConf = -1; QConf = -1; QNo = 0;
         }
 
@@ -393,6 +406,19 @@ namespace FM27MediaMod
                 // earlier versions filed any Convince / Threaten / Back Down line as a push-out: those not about leaving are dropped
                 int misread = All.RemoveAll(w => w.Kind == "pushout" && !Leave.IsMatch(w.Text ?? ""));
                 if (misread > 0) { Save(); PressRoom.W("whisper", "misread push-outs dropped", misread.ToString()); }
+                // 0.13.10: contract renewals filed as transfers by earlier versions (an "interest" line about a new contract, and the
+                // haggling that followed it in the same conference) become renewal talks; the latest stance per player and conference is kept
+                var renew = new HashSet<string>();
+                foreach (var w in All) if (w.Kind == "interest" && RenewWords.IsMatch(w.Text ?? "")) { w.Kind = "renewal"; renew.Add(w.Player + "|" + w.Conf); }
+                foreach (var w in All) if (w.Kind == "haggle" && renew.Contains(w.Player + "|" + w.Conf)) w.Kind = "renewal";
+                int merged = 0;
+                if (renew.Count > 0)
+                    for (int i = All.Count - 1; i >= 0; i--)
+                    {
+                        var w = All[i]; if (w.Kind != "renewal") continue;
+                        for (int j = i - 1; j >= 0; j--) if (All[j].Kind == "renewal" && All[j].Player == w.Player && All[j].Conf == w.Conf) { All.RemoveAt(j); i--; merged++; }
+                    }
+                if (renew.Count > 0) { Save(); PressRoom.W("whisper", "renewals refiled", renew.Count + " (" + merged + " merged)"); }
                 if (File.Exists(PeoplePath))
                     foreach (var line in File.ReadAllLines(PeoplePath))
                     {

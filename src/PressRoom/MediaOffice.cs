@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
 
 namespace FM27MediaMod
 {
-    internal static class MediaOffice
+    internal static partial class MediaOffice
     {
         internal enum Approach { None, OpenDoor, Gatekeeper, Fixer }
         internal class Candidate { public string Name, Title, Bio; public Approach A; }
@@ -387,9 +387,14 @@ namespace FM27MediaMod
         }
         static Label Pill(string t, Color bg)
         {
-            var l = new Label(t); l.style.fontSize = 10.5f; l.style.color = Ink; l.style.backgroundColor = bg;
-            l.style.paddingLeft = 5; l.style.paddingRight = 5; l.style.paddingTop = 1; l.style.paddingBottom = 1; l.style.marginRight = 4;
-            l.style.borderTopLeftRadius = 4; l.style.borderTopRightRadius = 4; l.style.borderBottomLeftRadius = 4; l.style.borderBottomRightRadius = 4;
+            Color fill = bg, ink = Ink;
+            if (Same(bg, GreenPill)) { fill = WinBg; ink = WinFg; }
+            else if (Same(bg, AmberPill) || Same(bg, SiPill)) { fill = OrangeDark; ink = OrangePale; }
+            else if (Same(bg, RedPill)) { fill = LossBg; ink = LossFg; }
+            else if (Same(bg, StoryPill)) { fill = IncBg; ink = Ink; }
+            var l = new Label(t); l.style.fontSize = 12; l.style.unityFontStyleAndWeight = FontStyle.Bold; l.style.color = ink; l.style.backgroundColor = fill;
+            l.style.paddingLeft = 9; l.style.paddingRight = 9; l.style.paddingTop = 3; l.style.paddingBottom = 3; l.style.marginRight = 6;
+            Radius(l, 10);
             return l;
         }
 
@@ -408,7 +413,7 @@ namespace FM27MediaMod
                 if (d.Signals.Contains("off") && conf - d.LastConf > 0) continue;
                 shown++;
                 var row = Item();
-                string side = d.Signals.Contains("done") ? "Done deal" : d.Side == "selling" ? "Sale" : d.Side == "buying" ? "Signing" : "Talks";
+                string side = d.Signals.Contains("done") ? (d.Side == "renewing" ? "Signed a new contract" : "Done deal") : d.Side == "selling" ? "Sale" : d.Side == "buying" ? "Signing" : d.Side == "renewing" ? "New contract" : "Talks";
                 row.Add(Text(d.Player + "   " + side + (d.Agent.Length > 0 ? ", agent " + d.Agent : ""), 12.5f, Ink));
                 var bar = new VisualElement(); bar.style.height = 6; bar.style.width = 200; bar.style.backgroundColor = Grey; bar.style.marginTop = 2; bar.style.marginBottom = 3;
                 var fill = new VisualElement(); fill.style.height = 6; fill.style.width = 20 * Math.Max(0, Math.Min(10, d.Heat)); fill.style.backgroundColor = d.Heat >= 7 ? BanRed : Gold; bar.Add(fill);
@@ -419,26 +424,7 @@ namespace FM27MediaMod
                 if (d.Stance.Length > 0) known.Add("your last stance: " + d.Stance);
                 if (known.Count > 0) { var k = string.Join("; ", known); row.Add(Text(char.ToUpperInvariant(k[0]) + k.Substring(1) + ".", 11, Quiet)); }
                 if (d.LastLine.Length > 0) row.Add(Text("In the papers: \"" + d.LastLine + "\"", 11, Ink));
-                if (Mode != Approach.None && d.Heat >= 2 && !d.Signals.Contains("done"))
-                {
-                    var dd = d;
-                    if (Mode == Approach.Gatekeeper)
-                    {
-                        if (!d.Quiet) row.Add(Act("Say nothing", "quiet", d.Player, Desk.Risk.None, false, Grey, () => { Deals.BriefBack(dd); Desk.Charge(0, "said nothing about", dd.Player, ""); }));
-                        else row.Add(Text("The club is saying nothing about it.", 11, Quiet));
-                    }
-                    else if (d.Brief == "pending") row.Add(Text("Your briefing goes out at the next press conference.", 11, Quiet));
-                    else
-                    {
-                        var risk = Desk.RiskOf("brief", "");
-                        row.Add(Act("Brief back", "brief", d.Player, risk, false, Navy, () =>
-                        {
-                            Deals.BriefBack(dd);
-                            if (Desk.Misfires("brief", dd.Player, risk)) { Deals.AddHeat(dd.Player, 2); LastNews = "The agent answered your briefing on " + dd.Player + ": the deal is hotter in the papers."; Desk.Charge(Desk.Cost("brief"), "briefed back on", dd.Player, "the agent answered back"); }
-                            else Desk.Charge(Desk.Cost("brief"), "briefed back on", dd.Player, "your line goes out at the next press conference");
-                        }));
-                    }
-                }
+                { var acts = DealActs(d); if (acts != null) row.Add(acts); }
                 box.Add(row);
             }
             if (shown == 0) box.Add(Text("Nothing yet. Deals appear here once you have talked to an agent about a player.", 11.5f, Quiet));
@@ -446,7 +432,7 @@ namespace FM27MediaMod
             {
                 var r = Row();
                 r.Add(Btn("Window's shut: drop the transfer talk", () => { Deals.ShutWindow("by hand"); Refresh(); }, Grey));
-                box.Add(Text("Once the transfer window shuts, deals still open are off for now and the press stop asking. This happens by itself when SI's window round-up comes out.", 11, Quiet));
+                box.Add(Text("Once the transfer window shuts, deals still open are off for now and the press stop asking. This happens by itself when the news carries the window's round-up.", 11, Quiet));
                 box.Add(r);
             }
             var club = new List<string>();
@@ -502,42 +488,7 @@ namespace FM27MediaMod
                 row.Add(Text(Word.Describe(w), 12.5f, Ink));
                 string state = w.State == "out" ? "Out" + (w.Outlet.Length > 0 ? ": " + w.Outlet : "") : w.State == "planted" ? "Planted with " + w.Outlet : w.State == "hushed" ? "Kept quiet" : w.State == "stale" ? "Old news: the deal is done or off" : "Not out yet";
                 row.Add(Text((w.With.Length > 0 ? "Said to " + w.With + " · " : "") + state, 11, Quiet));
-                if (w.State == "new" && Mode != Approach.None)
-                {
-                    var ww = w; var target = PlantTarget();
-                    if (target != null)
-                    {
-                        var risk = Desk.RiskOf("plant", "");
-                        row.Add(Act("Plant with " + target, "plant", target, risk, false, Navy, () =>
-                        {
-                            ww.State = "planted"; ww.Outlet = target; Word.Save(); PressRoom.W("whisper", "planted", target + " | " + Word.Describe(ww));
-                            string outcome = target + " will run it";
-                            if (Desk.Misfires("plant", target, risk))
-                            {
-                                // the rest of the room works out where it came from
-                                if (Pack.On) foreach (var j in new List<Pack.J>(Pack.All())) if (j.Outlet != target) Pack.Add(j.Name, -1, "jealous:" + target);
-                                outcome += "; the room has worked out it came from you";
-                                LastNews = "The other outlets have worked out that " + target + "'s story came from you. They're cooler with you for now.";
-                            }
-                            Desk.Charge(Desk.Cost("plant"), "planted a story with", target, outcome);
-                        }));
-                    }
-                    var hr = Desk.RiskOf("hush", w.With);
-                    row.Add(Act("Keep it quiet", "hush", w.Player, hr, false, Grey, () =>
-                    {
-                        if (Desk.Misfires("hush", ww.Player, hr))
-                        {
-                            LastNews = "Couldn't keep it quiet: " + Word.Describe(ww) + ". It may come out at your next press conference.";
-                            Desk.Charge(Desk.Cost("hush"), "tried to keep quiet", ww.Player, "it got out anyway");
-                            PressRoom.W("whisper", "hush failed", Word.Describe(ww));
-                        }
-                        else
-                        {
-                            ww.State = "hushed"; Word.Save(); PressRoom.W("whisper", "hushed", Word.Describe(ww));
-                            Desk.Charge(Desk.Cost("hush"), "kept quiet", ww.Player, "");
-                        }
-                    }));
-                }
+                { var acts = WhisperActs(w); if (acts != null) row.Add(acts); }
                 box.Add(row);
             }
             if (shown == 0) box.Add(Text("Nothing new. Talk to an agent, your director of football or a player about a move.", 11.5f, Quiet));
@@ -561,31 +512,146 @@ namespace FM27MediaMod
                 var row = Item();
                 row.Add(Text(Incidents.Describe(x), 12.5f, Ink));
                 row.Add(Text(Incidents.StateLine(x, now), 11, Quiet));
-                if (Mode != Approach.None && (x.State == "open" || x.State == "inhouse"))
-                {
-                    var xx = x;
-                    var who = string.IsNullOrEmpty(x.Player) ? "incident " + x.Id : x.Player;
-                    if (x.State == "open")
-                    {
-                        var risk = Desk.RiskOf("closeranks", "");
-                        row.Add(Act("Close ranks", "closeranks", who, risk, false, Grey, () =>
-                        {
-                            if (Desk.Misfires("closeranks", who, risk))
-                            {
-                                LastNews = "Too late to close ranks: the press already know about " + Incidents.Describe(xx) + ".";
-                                Desk.Charge(Desk.Cost("closeranks"), "tried to close ranks on", who, "the press already knew");
-                            }
-                            else { Incidents.SetState(xx, "inhouse"); Desk.Charge(Desk.Cost("closeranks"), "closed ranks on", who, ""); }
-                        }));
-                    }
-                    else row.Add(Act("Let them ask", "letask", who, Desk.Risk.None, false, Navy, () => { Incidents.SetState(xx, "open"); }));
-                }
+                { var acts = IncidentActs(x); if (acts != null) row.Add(acts); }
                 box.Add(row);
             }
             if (shown == 0) box.Add(Text("Nothing reported. When the news carries one of your players wanting out, a falling-out or a training-ground bust-up, it appears here.", 11.5f, Quiet));
             Body.Add(box);
+            // 0.13.9: how they took what you said (team meetings and chats), newest first
+            var took = Box();
+            took.Add(Text("HOW THEY TOOK IT", 11, Quiet));
+            took.Add(Text("Your team meetings and chats: the line you chose, the reaction the room showed and the reply. Kept per save.", 11, Quiet));
+            int n = 0;
+            foreach (var r in Reactions.Latest(8))
+            {
+                n++;
+                var row = Item();
+                row.Add(Text(Reactions.Heading(r), 12.5f, Ink));
+                row.Add(Text(Reactions.Detail(r), 11, Quiet));
+                var room = Reactions.RoomLine(r);
+                if (room.Length > 0) row.Add(Text(room, 11, Ink));
+                else if (r.Who.Length > 0 && r.Who.Contains(";") && r.Who.Split(';').Length <= 3) row.Add(Text(r.Who, 11, Quiet));
+                took.Add(row);
+            }
+            if (n == 0) took.Add(Text("Nothing yet. After your next team meeting or chat, the room's reaction appears here.", 11.5f, Quiet));
+            Body.Add(took);
         }
 
+        // 0.15.0: the dressing-room story's actions, shared by its tab and the This week page
+        static VisualElement IncidentActs(Incidents.I x)
+        {
+            if (!(Mode != Approach.None && (x.State == "open" || x.State == "inhouse"))) return null;
+            var row = new VisualElement();
+            var xx = x;
+            var who = string.IsNullOrEmpty(x.Player) ? "incident " + x.Id : x.Player;
+            if (x.State == "open")
+            {
+                var risk = Desk.RiskOf("closeranks", "");
+                row.Add(Act("Close ranks", "closeranks", who, risk, false, Grey, () =>
+                {
+                    if (Desk.Misfires("closeranks", who, risk))
+                    {
+                        LastNews = "Too late to close ranks: the press already know about " + Incidents.Describe(xx) + ".";
+                        Desk.Charge(Desk.Cost("closeranks"), "tried to close ranks on", who, "the press already knew");
+                    }
+                    else { Incidents.SetState(xx, "inhouse"); Desk.Charge(Desk.Cost("closeranks"), "closed ranks on", who, ""); }
+                }));
+            }
+            else row.Add(Act("Let them ask", "letask", who, Desk.Risk.None, false, Navy, () => { Incidents.SetState(xx, "open"); }));
+            return row;
+        }
+
+        // 0.15.0: the whisper's actions, shared by its tab and the This week page
+        static VisualElement WhisperActs(Word.Whisper w)
+        {
+            if (!(w.State == "new" && Mode != Approach.None)) return null;
+            var row = new VisualElement();
+            var ww = w; var target = PlantTarget();
+            if (target != null)
+            {
+                var risk = Desk.RiskOf("plant", "");
+                row.Add(Act("Plant with " + target, "plant", target, risk, false, Navy, () =>
+                {
+                    ww.State = "planted"; ww.Outlet = target; Word.Save(); PressRoom.W("whisper", "planted", target + " | " + Word.Describe(ww));
+                    string outcome = target + " will run it";
+                    if (Desk.Misfires("plant", target, risk))
+                    {
+                        // the rest of the room works out where it came from
+                        if (Pack.On) foreach (var j in new List<Pack.J>(Pack.All())) if (j.Outlet != target) Pack.Add(j.Name, -1, "jealous:" + target);
+                        outcome += "; the room has worked out it came from you";
+                        LastNews = "The other outlets have worked out that " + target + "'s story came from you. They're cooler with you for now.";
+                    }
+                    Desk.Charge(Desk.Cost("plant"), "planted a story with", target, outcome);
+                }));
+            }
+            var hr = Desk.RiskOf("hush", w.With);
+            row.Add(Act("Keep it quiet", "hush", w.Player, hr, false, Grey, () =>
+            {
+                if (Desk.Misfires("hush", ww.Player, hr))
+                {
+                    LastNews = "Couldn't keep it quiet: " + Word.Describe(ww) + ". It may come out at your next press conference.";
+                    Desk.Charge(Desk.Cost("hush"), "tried to keep quiet", ww.Player, "it got out anyway");
+                    PressRoom.W("whisper", "hush failed", Word.Describe(ww));
+                }
+                else
+                {
+                    ww.State = "hushed"; Word.Save(); PressRoom.W("whisper", "hushed", Word.Describe(ww));
+                    Desk.Charge(Desk.Cost("hush"), "kept quiet", ww.Player, "");
+                }
+            }));
+            return row;
+        }
+
+        // 0.15.0: the deal's actions, shared by its tab and the This week page
+        static VisualElement DealActs(Deals.Deal d)
+        {
+            if (!(Mode != Approach.None && d.Heat >= 2 && !d.Signals.Contains("done"))) return null;
+            var row = new VisualElement();
+            var dd = d;
+            if (Mode == Approach.Gatekeeper)
+            {
+                if (!d.Quiet) row.Add(Act("Say nothing", "quiet", d.Player, Desk.Risk.None, false, Grey, () => { Deals.BriefBack(dd); Desk.Charge(0, "said nothing about", dd.Player, ""); }));
+                else row.Add(Text("The club is saying nothing about it.", 11, Quiet));
+            }
+            else if (d.Brief == "pending") row.Add(Text("Your briefing goes out at the next press conference.", 11, Quiet));
+            else
+            {
+                var risk = Desk.RiskOf("brief", "");
+                row.Add(Act("Brief back", "brief", d.Player, risk, false, Navy, () =>
+                {
+                    Deals.BriefBack(dd);
+                    if (Desk.Misfires("brief", dd.Player, risk)) { Deals.AddHeat(dd.Player, 2); LastNews = "The agent answered your briefing on " + dd.Player + ": the deal is hotter in the papers."; Desk.Charge(Desk.Cost("brief"), "briefed back on", dd.Player, "the agent answered back"); }
+                    else Desk.Charge(Desk.Cost("brief"), "briefed back on", dd.Player, "your line goes out at the next press conference");
+                }));
+            }
+            return row;
+        }
+
+        // 0.15.0: a desk job's buttons, shared by the desk and the This week page
+        static VisualElement MissionActs(Mission m)
+        {
+            var box = new VisualElement();
+            var mm = m;
+            if (m.State == "offered")
+            {
+                var r = Row();
+                bool freeze = m.Kind == "freeze";
+                var block = freeze && Desk.Count("banned") >= Desk.MaxBanned ? "No room for another ban" : null;
+                if (block == null)
+                    r.Add(Act("Take it on", "mission", Title(m), Desk.Risk.None, freeze, Green, () =>
+                    {
+                        mm.State = "active"; mm.Since = PressRoom.Record.Conf;
+                        if (mm.Kind == "freeze") { Status[mm.Outlet] = "banned"; Desk.BanSince[mm.Outlet] = PressRoom.Record.Conf; }
+                        Save(); PressRoom.W("mission", "taken", Title(mm));
+                        Desk.Charge(Desk.Cost("mission"), "took on: " + Title(mm), Title(mm), "");
+                    }));
+                else r.Add(Text(block + ".", 11, Quiet));
+                r.Add(Btn("Not now", () => { mm.State = "dropped"; Save(); Refresh(); }, Grey));
+                box.Add(r);
+            }
+            else { var r = Row(); r.Add(Btn("Drop it", () => { mm.State = "dropped"; Save(); Refresh(); }, Grey)); box.Add(r); }
+            return box;
+        }
         static void SetStatus(string outlet, string s)
         {
             var old = StatusOf(outlet);
@@ -609,8 +675,9 @@ namespace FM27MediaMod
         static DateTime NextCheck = DateTime.MinValue;
         static string TabNow = "week";
         // 0.13.1: black and orange (Nik: "I'm from Sheffield so we have to go black and orange")
-        static readonly Color Bg = new Color(0.07f, 0.07f, 0.07f, 0.97f), Card = new Color(0.14f, 0.14f, 0.14f, 1f), Ink = new Color(0.95f, 0.94f, 0.92f, 1f),
-            Quiet = new Color(0.68f, 0.66f, 0.63f, 1f),
+        // 0.15.0: the Treatment Room's base (near-black cards, light text) with the office's orange
+        static readonly Color Bg = new Color(0.082f, 0.082f, 0.090f, 0.985f), Card = new Color(0.110f, 0.110f, 0.122f, 1f), Ink = new Color(0.957f, 0.949f, 0.937f, 1f),
+            Quiet = new Color(0.741f, 0.722f, 0.694f, 1f),
             Gold = new Color(1.00f, 0.60f, 0.18f, 1f),        // orange text: titles, news, warnings
             RedC = new Color(0.93f, 0.47f, 0.09f, 1f),        // the MEDIA tab and Ban buttons: orange
             RedText = new Color(1.00f, 0.50f, 0.42f, 1f),
@@ -641,31 +708,41 @@ namespace FM27MediaMod
             Body.Add(box);
         }
 
+        // 0.15.0: the old sections in the new look: text a size up, all-caps captions as headings, buttons and cards as the Treatment Room's
         static Label Text(string t, float size, Color c)
         {
-            var l = new Label(t); l.style.fontSize = size; l.style.color = c; l.style.whiteSpace = WhiteSpace.Normal;
-            l.style.marginBottom = 2; return l;
+            var l = new Label(t); l.style.whiteSpace = WhiteSpace.Normal; l.style.marginBottom = 3; l.style.marginTop = 0;
+            bool caption = size <= 11.01f && t.Length > 3 && t.Length < 60 && t == t.ToUpperInvariant() && HasLetter(t) && !t.Contains(".");
+            if (caption) { l.style.fontSize = 12; l.style.color = Quiet; l.style.unityFontStyleAndWeight = FontStyle.Bold; l.style.letterSpacing = 1.3f; l.style.marginBottom = 6; return l; }
+            l.style.fontSize = size + 1; l.style.color = c;
+            return l;
         }
         static Button Btn(string t, System.Action act, Color bg)
         {
             var b = new Button(); b.text = t;
-            b.style.backgroundColor = bg; b.style.color = Ink; b.style.fontSize = 12;
-            b.style.paddingLeft = 8; b.style.paddingRight = 8; b.style.paddingTop = 3; b.style.paddingBottom = 3; b.style.marginRight = 4;
+            Color fill = bg, ink = Ink; bool edge = false;
+            if (Same(bg, Navy) || Same(bg, Green) || Same(bg, RedC)) { fill = Orange; ink = OnOrange; }
+            else if (Same(bg, Grey)) { fill = BtnBg; edge = true; }
+            else if (Same(bg, Dim)) { fill = Hex("222226"); ink = Quiet; edge = true; }
+            else if (Same(bg, BanRed)) { fill = Hex("8A2C35"); ink = White1; }
+            b.style.backgroundColor = fill; b.style.color = ink; b.style.fontSize = 13;
+            if (Same(fill, Orange)) b.style.unityFontStyleAndWeight = FontStyle.Bold;
+            Border(b, edge ? 1 : 0, BtnEdge); Radius(b, 8);
+            b.style.paddingLeft = 12; b.style.paddingRight = 12; b.style.paddingTop = 5; b.style.paddingBottom = 5;
+            b.style.marginLeft = 0; b.style.marginRight = 6; b.style.marginTop = 2; b.style.marginBottom = 2;
             System.Action safe = () => { try { act(); } catch (Exception e) { PressRoom.Fail("office click", e); } };
             b.clickable.add_clicked(safe);
             return b;
         }
         static VisualElement Box()
         {
-            var v = new VisualElement(); v.style.backgroundColor = Card;
-            v.style.paddingLeft = 10; v.style.paddingRight = 10; v.style.paddingTop = 7; v.style.paddingBottom = 7; v.style.marginBottom = 7;
-            v.style.borderTopLeftRadius = 6; v.style.borderTopRightRadius = 6; v.style.borderBottomLeftRadius = 6; v.style.borderBottomRightRadius = 6;
+            var v = Panel(Card, Edge, 12); Pad(v, 14, 18); v.style.marginBottom = 14;
             return v;
         }
         static VisualElement Item()
         {
-            var row = new VisualElement(); row.style.marginTop = 4; row.style.paddingBottom = 5;
-            row.style.borderBottomWidth = 1; row.style.borderBottomColor = new Color(1f, 1f, 1f, 0.06f);
+            var row = new VisualElement(); row.style.marginTop = 6; row.style.paddingBottom = 9;
+            row.style.borderBottomWidth = 1; row.style.borderBottomColor = RowRule;
             return row;
         }
         static VisualElement Row() { var r = new VisualElement(); r.style.flexDirection = FlexDirection.Row; r.style.flexWrap = Wrap.Wrap; r.style.alignItems = Align.Center; return r; }
@@ -678,7 +755,7 @@ namespace FM27MediaMod
             try
             {
                 if (Desk.RescanDate && Host != null) Desk.ScanForDate(Host);   // 0.13.2: the top bar after a day change
-                if (Tab != null && Tab.panel != null) return;
+                if (Tab != null && Tab.panel != null) { PrPopout.Update(); return; }   // 0.13.8: the popout's status, pill and notes
                 VisualElement host = null;
                 for (var e = any; e != null; e = e.parent) if (e.name == "MainUIDocument-container") { host = e; break; }
                 if (host == null) return;
@@ -691,6 +768,7 @@ namespace FM27MediaMod
                 Tab.style.paddingLeft = 2; Tab.style.paddingRight = 2; Tab.style.paddingTop = 6; Tab.style.paddingBottom = 6; Tab.style.marginRight = 0;
                 Tab.style.borderTopLeftRadius = 6; Tab.style.borderBottomLeftRadius = 6; Tab.style.borderTopRightRadius = 0; Tab.style.borderBottomRightRadius = 0;
                 host.Add(Tab);
+                PrPopout.Attach(Tab, Tabs);   // 0.13.8: Core's popout reads these (hidden) children
                 PressRoom.W("office", "tab added", "");
                 Desk.RescanDate = true;
             }
@@ -698,32 +776,77 @@ namespace FM27MediaMod
         }
 
         static VisualElement Strip, TabsRow;
+        // 0.13.8: open the office at one of its tabs (from Core's popout)
+        internal static void OpenAt(string key)
+        {
+            TabNow = key;
+            if (Page == null || Page.panel == null) Toggle(); else Refresh();
+        }
         static void Toggle()
         {
             if (Page != null && Page.panel != null) { Page.RemoveFromHierarchy(); Page = null; return; }
             if (Host == null) return;
+            try { Build(); } catch (Exception e) { PressRoom.Fail("office build", e); }
+            Refresh();
+        }
+        // 0.15.0: the Press Office's new shell, as the Treatment Room's: the office's mark, the page's name, the date and the next match,
+        // who runs the office, pill tabs, a scrolling body
+        static Label TitleL, SubL, HeadL;
+        static void Build()
+        {
             Desk.ScanForDate(Host);
+            FindFont();
+            float hw = 1600f, hh = 900f;
+            try { var b = Host.worldBound; if (!float.IsNaN(b.width) && b.width > 400) { hw = b.width; hh = b.height; } } catch { }
             Page = new VisualElement(); Page.name = "FM27MM-MediaOffice";
-            Page.style.position = Position.Absolute; Page.style.right = 40; Page.style.top = 50; Page.style.width = 720;
-            Page.style.backgroundColor = Bg;
-            Page.style.paddingLeft = 14; Page.style.paddingRight = 14; Page.style.paddingTop = 10; Page.style.paddingBottom = 12;
-            Page.style.borderTopLeftRadius = 10; Page.style.borderTopRightRadius = 10; Page.style.borderBottomLeftRadius = 10; Page.style.borderBottomRightRadius = 10;
-            var head = Row(); head.style.justifyContent = Justify.SpaceBetween; head.style.marginBottom = 4;
-            head.Add(Text("MEDIA OFFICE", 16, Gold));
-            head.Add(Btn("Close", Toggle, Grey));
+            Page.style.position = Position.Absolute; Page.style.right = 40; Page.style.top = 50;
+            Page.style.width = Math.Min(1180f, hw - 120f);
+            Page.style.maxHeight = hh - 90f;
+            Page.style.backgroundColor = PageBg; Border(Page, 1, Edge); Radius(Page, 14); Page.style.overflow = Overflow.Hidden;
+            var head = Flex(true, true); head.style.justifyContent = Justify.SpaceBetween; Pad(head, 16, 22); head.style.borderBottomWidth = 1; head.style.borderBottomColor = Edge;
+            var left = Flex(true);
+            var mark = Disp(L("P", 22, OnOrange, true)); mark.style.width = 40; mark.style.height = 40; mark.style.backgroundColor = Orange; Radius(mark, 10);
+            mark.style.unityTextAlign = TextAnchor.MiddleCenter; mark.style.marginRight = 12; left.Add(mark);
+            var titles = Flex(false);
+            var office = L("PRESS OFFICE", 12, OrangeLight, true, 1); office.style.letterSpacing = 2f; titles.Add(office);
+            TitleL = Disp(L("This week", 20, Text1, true)); titles.Add(TitleL);
+            SubL = L("", 13, Text2); SubL.style.marginTop = 2; titles.Add(SubL);
+            left.Add(titles); head.Add(left);
+            var right = Flex(true);
+            HeadL = L("", 13, Text2); HeadL.style.unityTextAlign = TextAnchor.MiddleRight; HeadL.style.marginRight = 14; right.Add(HeadL);
+            right.Add(Btn("Close", Toggle, Grey));
+            head.Add(right);
             Page.Add(head);
-            Strip = new VisualElement(); Strip.style.marginBottom = 6; Page.Add(Strip);
-            TabsRow = Row(); TabsRow.style.marginBottom = 8; Page.Add(TabsRow);
-            var scroll = new ScrollView(); scroll.style.maxHeight = 680;
-            Body = new VisualElement(); scroll.Add(Body);
+            Strip = null;   // 0.15.0: the old strip's facts are in the header and on This week
+            TabsRow = Flex(true, true); Pad(TabsRow, 10, 22); TabsRow.style.borderBottomWidth = 1; TabsRow.style.borderBottomColor = Edge; Page.Add(TabsRow);
+            var scroll = new ScrollView(); scroll.style.flexShrink = 1; scroll.style.maxHeight = Math.Max(240f, hh - 250f);
+            try { scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden; } catch { }
+            Body = new VisualElement(); Pad(Body, 18, 22); scroll.Add(Body);
             Page.Add(scroll);
             Host.Add(Page);
-            Refresh();
+            PressRoom.W("office", "opened", $"width {Math.Min(1180f, hw - 120f):0} of {hw:0}" + ((object)Display != null ? ", game display font" : ""));
+        }
+        static readonly Dictionary<string, string> TabTitles = new Dictionary<string, string> { { "week", "This week" }, { "press", "The press" }, { "transfers", "Transfers" },
+            { "room", "The dressing room" }, { "terraces", "The terraces" }, { "cuttings", "Cuttings" }, { "settings", "Settings" } };
+        static string Sub()
+        {
+            var parts = new List<string>();
+            if (Desk.DateKnown) { try { parts.Add(Desk.Today.ToString("ddd d/M/yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-GB"))); } catch { parts.Add(Desk.WeekLabel()); } }
+            else parts.Add(Desk.WeekLabel());
+            var opp = GameFacts.Get("next_opponent"); if (opp.Length > 0) parts.Add("Next: " + opp);
+            if (Mode != Approach.None) parts.Add(Desk.Left + " of " + Desk.Hours + " hours left");
+            return string.Join("  ·  ", parts);
+        }
+        static string HeadLine()
+        {
+            if (Mode == Approach.None) return "No head of media yet";
+            Candidate c = null; foreach (var x in Candidates) if (x.A == Mode) c = x;
+            return "Head of media: " + HeadName + " (" + (c?.Title ?? Mode.ToString()) + ")";
         }
 
         static readonly (string key, string label)[] Tabs =
         {
-            ("week", "This week"), ("press", "Press"), ("transfers", "Transfers"), ("room", "Dressing room"), ("terraces", "Terraces"), ("cuttings", "Cuttings"), ("settings", "Settings"),
+            ("week", "This week"), ("press", "The press"), ("transfers", "Transfers"), ("room", "Dressing room"), ("terraces", "Terraces"), ("cuttings", "Cuttings"), ("settings", "Settings"),
         };
 
         internal static void Refresh()
@@ -741,21 +864,23 @@ namespace FM27MediaMod
                     parts.Add(Mode == Approach.None ? "No head of media yet" : "Head of media: " + HeadName);
                     Strip.Add(Text(string.Join("  ·  ", parts), 12, Ink));
                 }
+                try
+                {
+                    if (TitleL != null) TitleL.text = TabTitles.TryGetValue(TabNow, out var tt) ? tt : "Press Office";
+                    if (SubL != null) SubL.text = Sub();
+                    if (HeadL != null) HeadL.text = HeadLine();
+                }
+                catch (Exception e) { PressRoom.Fail("office header", e); }
                 if (TabsRow != null)
                 {
                     TabsRow.Clear();
-                    foreach (var (key, label) in Tabs) { var k = key; TabsRow.Add(Btn(label, () => { TabNow = k; Refresh(); }, TabNow == k ? Navy : Grey)); }
+                    foreach (var (key, label) in Tabs) { var k = key; TabsRow.Add(TabPill(label, () => { TabNow = k; Refresh(); }, TabNow == k)); }
                 }
                 MemorySection(false);
-                if (!string.IsNullOrEmpty(LastNews) && TabNow != "settings") { var n = Box(); n.Add(Text(LastNews, 12, Gold)); Body.Add(n); }
+                if (!string.IsNullOrEmpty(LastNews) && TabNow != "settings") { var n = Panel(AlertBg, AlertEdge, 10); Pad(n, 12, 16); n.style.marginBottom = 14; n.Add(L(LastNews, 14, OrangePale)); Body.Add(n); }
                 switch (TabNow)
                 {
-                    case "week":
-                        NoShowSection();
-                        HeadSection();
-                        if (Mode != Approach.None) { OfferMissions(); DeskSection(); }
-                        SpendSection();
-                        break;
+                    case "week": WeekView(); break;   // 0.15.0: the front page (OfficeWeek.cs)
                     case "press": PressListSection(); break;
                     case "transfers": WhispersSection(); DealsSection(); break;
                     case "room": DressingRoomSection(); break;
@@ -763,7 +888,7 @@ namespace FM27MediaMod
                     case "cuttings": CuttingsSection(); break;
                     case "settings": SettingsSection(); VoicesSection(); MemorySection(true); break;
                 }
-                if (TabNow == "press") Body.Add(Text("Changes apply from the next question. Bans are enforced by your press officer with a \"no comment\", which the game records as yours.", 11, Quiet));
+                if (TabNow == "press") Body.Add(Text("Changes apply from the next question. Bans are enforced by your press officer with a \"no comment\", which goes on the record as yours.", 11, Quiet));
             }
             catch (Exception e) { PressRoom.Fail("office refresh", e); }
         }
@@ -823,25 +948,7 @@ namespace FM27MediaMod
                 var mb = new VisualElement(); mb.style.marginTop = 4; mb.style.marginBottom = 4;
                 mb.Add(Text(Title(m) + (m.State == "active" ? "  (" + m.Progress + "/" + m.Goal + ")" : ""), 13, Ink));
                 mb.Add(Text(Brief(m), 11.5f, Quiet));
-                var mm = m;
-                if (m.State == "offered")
-                {
-                    var r = Row();
-                    bool freeze = m.Kind == "freeze";
-                    var block = freeze && Desk.Count("banned") >= Desk.MaxBanned ? "No room for another ban" : null;
-                    if (block == null)
-                        r.Add(Act("Take it on", "mission", Title(m), Desk.Risk.None, freeze, Green, () =>
-                        {
-                            mm.State = "active"; mm.Since = PressRoom.Record.Conf;
-                            if (mm.Kind == "freeze") { Status[mm.Outlet] = "banned"; Desk.BanSince[mm.Outlet] = PressRoom.Record.Conf; }
-                            Save(); PressRoom.W("mission", "taken", Title(mm));
-                            Desk.Charge(Desk.Cost("mission"), "took on: " + Title(mm), Title(mm), "");
-                        }));
-                    else r.Add(Text(block + ".", 11, Quiet));
-                    r.Add(Btn("Not now", () => { mm.State = "dropped"; Save(); Refresh(); }, Grey));
-                    mb.Add(r);
-                }
-                else { var r = Row(); r.Add(Btn("Drop it", () => { mm.State = "dropped"; Save(); Refresh(); }, Grey)); mb.Add(r); }
+                mb.Add(MissionActs(m));
                 box.Add(mb);
             }
             if (shown == 0) box.Add(Text("Nothing for now. Your head of media will bring you jobs as the season goes.", 11.5f, Quiet));
@@ -864,7 +971,7 @@ namespace FM27MediaMod
         {
             var box = Box();
             box.Add(Text("THIS WEEK'S TIME", 11, Quiet));
-            box.Add(Text("Your press office has " + Desk.Hours + " hours a week. Looking is free; the game's own chats and commands cost nothing here. Unused time is lost at the end of the week." + (Desk.DateKnown ? "" : " (The office hasn't read the game's date yet, so it counts the game's days instead.)"), 11, Quiet));
+            box.Add(Text("Your press office has " + Desk.Hours + " hours a week. Looking is free, and ordinary chats and press conferences cost nothing here. Unused time is lost at the end of the week." + (Desk.DateKnown ? "" : " (The office hasn't read the date yet, so it counts the days as they pass.)"), 11, Quiet));
             int w = Desk.Week, n = 0;
             foreach (var s in Desk.Spent)
             {
@@ -1002,7 +1109,7 @@ namespace FM27MediaMod
             box.Add(r);
             box.Add(Text("SI means the game itself acts (a ban's \"no comment\", for example). Story means the mod's own world reacts: journalists, the papers, the fans. The mod never changes the game's numbers.", 11, Quiet));
             box.Add(Text("Weekly time, caps and the rest are in BepInEx\\config\\uk.nik.fm27mediamod.pressroom.cfg under [Media Office].", 11, Quiet));
-            box.Add(Text("Press Room " + PressRoom.Version + ". " + (Desk.DateKnown ? "Game date read: " + Desk.Today.ToString("ddd d MMM yyyy") + "." : "The game's date hasn't been read yet; weeks are counted from the game's day changes."), 11, Quiet));
+            box.Add(Text("Press Room " + PressRoom.Version + ". " + (Desk.DateKnown ? "Date read: " + Desk.Today.ToString("ddd d MMM yyyy") + "." : "The date hasn't been read yet; weeks are counted from the days as they pass."), 11, Quiet));
             Body.Add(box);
         }
     }

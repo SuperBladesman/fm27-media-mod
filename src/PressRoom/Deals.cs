@@ -131,6 +131,7 @@ namespace FM27MediaMod
         }
 
         // your choice in a chat (from Word): the stance, which side of the deal you are on, and who the agent is
+        internal static string SideOf(string who) => !string.IsNullOrEmpty(who) && All.TryGetValue(who, out var d) ? d.Side : "";
         internal static void Touch(string who, string kind, string stance)
         {
             try
@@ -140,7 +141,8 @@ namespace FM27MediaMod
                 d.Signals.Remove("off");     // talking again
                 if (Word.ChatRole == "Agent" && Word.ChatWith.Length > 0 && Word.ChatWith != who) d.Agent = Word.ChatWith;
                 if (kind == "selling" || kind == "pushout") d.Side = "selling";
-                else if ((kind == "interest" || kind == "haggle") && d.Side != "selling") d.Side = "buying";
+                else if (kind == "renewal" && d.Side != "selling") d.Side = "renewing";   // 0.13.10
+                else if ((kind == "interest" || kind == "haggle") && d.Side != "selling" && d.Side != "renewing") d.Side = "buying";
                 if (!string.IsNullOrEmpty(stance)) d.Stance = stance;
                 if (stance == "Desperate" || stance == "Contest" || stance == "Stall" || stance == "Threaten") d.Heat = Math.Min(10, d.Heat + 1);
                 if (stance == "Agree") d.Signals.Add("close");
@@ -180,7 +182,7 @@ namespace FM27MediaMod
                     // only for players you were bringing in: "bringing Rothwell back into the side" is not a sale completed
                     if (All.TryGetValue(p, out var dd) && dd.Side == "selling") continue;
                     bool buying = false, selling = false;
-                    foreach (var w in Word.All) if (w.Player == p) { if (w.Kind == "interest" || w.Kind == "haggle") buying = true; else selling = true; }
+                    foreach (var w in Word.All) if (w.Player == p) { if (w.Kind == "interest" || w.Kind == "haggle" || w.Kind == "renewal") buying = true; else selling = true; }
                     if (selling && !buying) continue;
                     MarkDone(p, "question");
                 }
@@ -198,6 +200,7 @@ namespace FM27MediaMod
             {
                 if (d.Signals.Contains("done") || d.Signals.Contains("off")) continue;
                 if (d.Side == "selling" && d.Stance == "Convince") continue;     // a player pushing to play more, not a transfer
+                if (d.Side == "renewing") continue;                               // 0.13.10: contract talks don't stop with the window
                 d.Signals.Add("off"); d.Heat = 0; d.LastConf = Conf; n++;
             }
             int w = 0;
@@ -210,7 +213,7 @@ namespace FM27MediaMod
         }
         internal static bool AnyOpenTransfer()
         {
-            foreach (var d in All.Values) if (!d.Signals.Contains("done") && !d.Signals.Contains("off") && !(d.Side == "selling" && d.Stance == "Convince")) return true;
+            foreach (var d in All.Values) if (!d.Signals.Contains("done") && !d.Signals.Contains("off") && d.Side != "renewing" && !(d.Side == "selling" && d.Stance == "Convince")) return true;
             foreach (var x in Word.All) if ((x.Kind == "interest" || x.Kind == "haggle" || x.Kind == "selling") && (x.State == "new" || x.State == "hushed" || x.State == "planted")) return true;
             return false;
         }
@@ -295,6 +298,22 @@ namespace FM27MediaMod
                 if (Steady(pers)) options.Add(("loyal", Cap(A) + " says " + S + " has no wish to leave."));
                 if (OurSideCanLeak(d) && SkintConf >= Conf - 2) options.Add(("books", "Is selling " + p + " about balancing the books?"));
             }
+            else if (d.Side == "renewing")
+            {
+                // 0.13.10: talks on a new contract for one of your own players
+                if (d.Signals.Contains("done")) { if (d.Heat >= 3) options.Add(("rdone", S + " has finally committed. Was the stand-off worth it?")); }
+                else
+                {
+                    if (d.Signals.Contains("toolong")) options.Add(("rtoolong", Pos(p) + " camp say the contract talks have dragged on far too long."));
+                    if (d.Signals.Contains("elsewhere")) options.Add(("relsewhere", Cap(A) + " is telling anyone who'll listen that other clubs want " + S + "."));
+                    if (d.Signals.Contains("hardball")) options.Add(("rhardball", Cap(A) + " says " + S + " won't sign for less."));
+                    if (d.Stance == "Desperate") options.Add(("rdesperate", Cap(A) + " knows how badly you want to keep " + S + ", and is making the most of it."));
+                    if (d.Stance == "Contest" || d.Stance == "Stall") options.Add(("rlowball", Cap(A) + " says the new contract on the table doesn't do " + S + " justice."));
+                    if (d.Signals.Contains("close")) options.Add(("rclose", Cap(A) + " says " + S + " is close to signing a new deal."));
+                    if (Loud(pers) && d.Signals.Contains("elsewhere")) options.Add(("rambition", "Word is " + p + " wants a contract that matches the club's ambition, or a move."));
+                    if (OurSideCanLeak(d) && WagesConf >= Conf - 2) options.Add(("rwages", "We understand the wage bill is already over budget. Can you afford to keep " + p + "?"));
+                }
+            }
             else if (d.Signals.Contains("done"))
             {
                 if (d.Heat >= 3) options.Add(("done", p + " is finally through the door. Was it worth all the fuss?"));
@@ -338,13 +357,16 @@ namespace FM27MediaMod
                 int conf = Conf, qno = Word.QNo;
                 if (TalkConf != conf) { TalkConf = conf; Talked = 0; }
                 if (MediaOffice.IsBanned(outlet)) return null;
-                // your own briefing goes first, from the second question on
+                // your own briefing goes first, from the second question on, and only on a question it fits (0.13.11: it went out
+                // on "Same again from last time out?" on 23 Nov; a briefing with no fitting question waits for the next conference)
                 if (BriefedConf != conf && qno >= 2)
                     foreach (var d in All.Values)
-                        if (d.Brief == "pending")
+                        if (d.Brief == "pending" && About(d, q))
                         {
                             d.Brief = "done"; d.BriefConf = conf; d.Heat = Math.Max(0, d.Heat - 3); BriefedConf = conf; d.LastLine = "";
-                            var line = d.Side == "selling" ? "Club sources say there's no pressure to sell " + d.Player + "." : "Club sources say there's no rush over " + d.Player + ".";
+                            var line = d.Side == "selling" ? "Club sources say there's no pressure to sell " + d.Player + "."
+                                     : d.Side == "renewing" ? "Club sources say there's no rush over a new contract for " + d.Player + "."
+                                     : "Club sources say there's no rush over " + d.Player + ".";
                             d.LastLine = line; Save();
                             PressRoom.W("brief", outlet + " / " + journalist, line);
                             return line;
@@ -494,6 +516,15 @@ namespace FM27MediaMod
                 foreach (var m in misread) All.Remove(m);
                 if (misread.Count > 0) { Save(); PressRoom.W("deal", "misread push-outs dropped", string.Join(", ", misread)); }
                 foreach (var d in All.Values) if (d.Signals.Contains("done") || d.Signals.Contains("closed")) Word.Stale(d.Player, null);
+                // 0.13.10: a deal whose talk was about a new contract is a renewal, not a signing
+                int ren = 0;
+                foreach (var d in All.Values)
+                    if (d.Side == "buying" && Word.All.Exists(w => w.Kind == "renewal" && (w.Player == d.Player || Word.DisplayFor(w.Player) == d.Player)))
+                    {
+                        d.Side = "renewing"; d.Signals.Remove("off"); ren++;
+                        foreach (var k in new List<string>(d.Said)) d.Said.Add("r" + k);   // what the press already said stays said in its renewal wording
+                    }
+                if (ren > 0) { Save(); PressRoom.W("deal", "renewals refiled", ren.ToString()); }
             }
             catch (Exception e) { PressRoom.Fail("deal load", e); }
         }

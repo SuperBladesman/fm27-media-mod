@@ -23,7 +23,7 @@ namespace FM27MediaMod
     {
         static string Root => Path.Combine(Paths.BepInExRootPath, "FM27MediaMod");
         static string Store => Path.Combine(Root, "saves");
-        static string[] Files => new[] { PressRoom.Record.FileName, "media office.tsv", "whispers.tsv", "deals.tsv", "people.tsv", "grudges.tsv", "fans.tsv", "fan press.tsv", "incidents.tsv", Pack.FileName, Voices.FileName };
+        static string[] Files => new[] { PressRoom.Record.FileName, "media office.tsv", "whispers.tsv", "deals.tsv", "people.tsv", "grudges.tsv", "fans.tsv", "fan press.tsv", "incidents.tsv", Pack.FileName, Voices.FileName, Medical.StateName, Pairs.StateName, Reactions.FileName };
         static string GamesDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Sports Interactive", "Football Manager 27", "games");
 
         internal static string CurrentPath = "", Status = "";
@@ -175,6 +175,9 @@ namespace FM27MediaMod
             Word.Reset(); Word.Load();
             Deals.Reset(); Deals.Load();
             Incidents.Reset(); Incidents.Load();
+            Reactions.Reset(); Reactions.Load();
+            Medical.Reset(); Medical.Load();
+            Pairs.Reset(); Pairs.Load();
             Pack.Reset(); Pack.Load();
             Voices.Reset(); Voices.LoadState();
             MediaOffice.Refresh();

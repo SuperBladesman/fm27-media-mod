@@ -2,11 +2,14 @@
 
 The mod changes Football Manager 27's media and dressing-room world: press conferences, interviews, player and staff chats, team talks, news and fan reactions. It never touches the match engine.
 
+The same steps install the two sister mods, the **Treatment Room** and **Partnerships** (see [The sister mods](#the-sister-mods-treatment-room-and-partnerships) below). Each is a separate download and works with or without the Media Mod.
+
 ## What you need
 
 - **Football Manager 27 on Windows**, with the game in English. Tested on Steam; Epic should work but hasn't been tried. macOS is not supported in the beta.
 - **BepInEx 6 (bleeding edge, Unity IL2CPP, x64)**, the loader that runs code mods in FM27. The mod is tested with build **be.785**; newer builds should work.
 - About 5 minutes, plus a slow first launch while BepInEx prepares itself.
+- A **single-player** game. Online and shared saves aren't supported.
 
 The mod is free. It ships only its own files: it never includes BepInEx, Sports Interactive's files or anyone else's mods.
 
@@ -43,7 +46,7 @@ These sit in the game folder itself, beside `fm.exe`, not inside `BepInEx`. **Ca
 1. Close FM27.
 2. Download the latest `FM27-Media-Mod-<version>.zip` from the [Releases page](https://github.com/SuperBladesman/fm27-media-mod/releases).
 3. Extract it **into the game folder**, letting the zip's `BepInEx` folder merge with yours. You should end up with:
-   - in `BepInEx\plugins`: `FM27MediaMod PressRoom`, `FM27MediaMod Tabloid`, `FM27MediaMod MediaLab`, `FM27MediaMod TeamTalkFilter`;
+   - in `BepInEx\plugins`: `FM27MediaMod PressRoom`, `FM27MediaMod Tabloid`, `FM27MediaMod MediaLab`, `FM27MediaMod TeamTalkFilter`, `FM27MediaMod Core` and `FM27MediaMod Reader`;
    - in `BepInEx\patchers`: `FM27MediaMod Builder` (the builder and its `data` folder).
 4. Start FM27. Before the main menu, the mod's **builder** runs once. It takes about 10 to 30 seconds, and FM may look frozen while it works. It:
    - writes the mod's language file, built from your own copy of FM27's English, into your languages folder;
@@ -52,7 +55,9 @@ These sit in the game folder itself, beside `fm.exe`, not inside `BepInEx`. **Ca
 
    What it did is written to `BepInEx\FM27MediaMod\builder.log`. After that it checks in under a second and does nothing unless something has changed.
 5. Go to **Preferences > Language** and choose **English (FM27 Media Mod 2)** (the number is the mod's data version; always pick the highest). FM compiles it the first time, which takes a moment.
-6. Load your save, or start a new game. The **MEDIA** tab on the right-hand edge of the screen opens the Media Office.
+
+   **Don't skip this step.** The mod's extra questions and answers exist only in its own language. On FM's ordinary English, some questions show up blank and some answers are missing.
+6. Load your save, or start a new game. In a game, a column of buttons appears on the right-hand edge of the screen (beside Heffem's Academy Manager hub, if you have it). **P** opens the Press Office.
 
 If `builder.log` says FM's template (`example.ltf`) isn't there yet, FM hasn't created it so far: start FM once, quit, and start it again.
 
@@ -61,8 +66,32 @@ If `builder.log` says FM's template (`example.ltf`) isn't there yet, FM hasn't c
 ## Updating the mod
 
 1. Close FM27 and extract the new zip over the old one, letting the folders merge.
-2. Start FM. The builder notices the new data and rebuilds (10 to 30 seconds).
+2. Start FM. If the builder's data has changed, it rebuilds (10 to 30 seconds); otherwise it checks in under a second.
 3. If the language number has gone up, choose the new one in **Preferences > Language**. The older `FM27 Media Mod <n>.ltf` stays in your languages folder; you can delete it (and its `.ltc`) with FM closed.
+
+From 0.9.1 to 0.9.2 the language stays at **English (FM27 Media Mod 2)**, so there's nothing to choose.
+
+---
+
+## The sister mods: Treatment Room and Partnerships
+
+Two separate downloads from the same [Releases page](https://github.com/SuperBladesman/fm27-media-mod/releases). Each works on its own or alongside the Media Mod. They read the game's own screens and change nothing in the game.
+
+- **Treatment Room** (`FM27-Treatment-Room-<version>.zip`): your medical department, readable. Guidance from your own staff, the sports science evidence, each player's record, your physios' track record. In a game, **+** opens it.
+- **Partnerships** (`FM27-Partnerships-<version>.zip`): your player partnerships, readable. How each pair does together and apart, in which positions, who's next, who's coming through. In a game, **&** opens it.
+
+To install either one:
+
+1. Close FM27.
+2. Extract the zip into the game folder, letting its `BepInEx` folder merge with yours. Each zip also holds `FM27MediaMod Core` and `FM27MediaMod Reader`, the same files as in the Media Mod's zip: if Windows asks, let it replace them.
+3. Start FM and load your save. There's no builder run and no language to choose.
+
+They learn as you go, from the screens you open:
+
+- **Treatment Room:** open **Training > Medical Centre** and **Club > Staff > Medical Team** once, then save the game. If your facepack has photos of your head physio and medical lead, they show on its front page.
+- **Partnerships:** open your **Tactics** screen and watch your matches. The results and positions fill in over a few matches.
+
+With the Media Mod installed as well, the press and the fans pick up their stories: an injury crisis, a partnership split up, a pair back together.
 
 ## After an FM27 patch
 
@@ -77,19 +106,21 @@ The game's `media.fmf` or `simatch.fmf` already has mod changes in it that the b
 
 ## Your saves
 
-The mod keeps its own memory (what you said, who you've upset, your press office) **per save**, in `BepInEx\FM27MediaMod`. Loading a save brings back that save's memory; a new game starts fresh.
+The mod keeps its own memory (what you said, who you've upset, your press office, and the Treatment Room's and Partnerships' records) **per save**, in `BepInEx\FM27MediaMod`. Loading a save brings back that save's memory; a new game starts fresh. What the mod learns after your last save is lost if you reload without saving, as it is in the game.
 
 ## Settings
 
-Most options are on the Media Office's **Settings** tab. The rest are in `BepInEx\config\uk.nik.fm27mediamod.<name>.cfg`, which you can open with Notepad while FM is closed.
+Most options are on the Press Office's **Settings** tab. The rest are in `BepInEx\config\uk.nik.fm27mediamod.<name>.cfg`, which you can open with Notepad while FM is closed.
 
 ## Uninstalling
 
 1. Close FM27.
-2. Delete the four `FM27MediaMod ...` folders from `BepInEx\plugins`, the `FM27MediaMod Builder` folder from `BepInEx\patchers`, and the `BepInEx\FM27MediaMod` folder.
+2. Delete the `FM27MediaMod Builder` folder from `BepInEx\patchers` **first** (otherwise it puts the mod straight back at the next start). Then delete the `FM27MediaMod ...` folders from `BepInEx\plugins` (PressRoom, Tabloid, MediaLab, TeamTalkFilter, and Core and Reader unless you keep a sister mod), and the `BepInEx\FM27MediaMod` folder (it also holds the sister mods' records).
 3. Steam: right-click FM27 > **Properties** > **Installed Files** > **Verify integrity of game files**. This puts SI's original media files back. It also removes any other mod's `simatch.fmf` or `media.fmf`, so copy those back in afterwards if you use one.
 4. In FM27, set **Preferences > Language** back to **English**. You can then delete the `FM27 Media Mod <n>.ltf` files (and `.ltc`) from `Documents\Sports Interactive\Football Manager 27\languages`.
 5. Only if no other mod needs BepInEx: delete `BepInEx`, `dotnet`, `winhttp.dll`, `doorstop_config.ini`, `.doorstop_version` and `changelog.txt` from the game folder. Leave `version.dll` alone if another mod installed it.
+
+**Uninstalling a sister mod:** close FM27 and delete `FM27MediaMod TreatmentRoom` or `FM27MediaMod Partnerships` from `BepInEx\plugins`. Delete `FM27MediaMod Core` and `FM27MediaMod Reader` too if nothing else of the mod's is left. Nothing else to undo: neither changes the game's files.
 
 ## Works with
 
@@ -102,9 +133,10 @@ Most options are on the Media Office's **Settings** tab. The rest are in `BepInE
 
 ## Known limits (beta)
 
-- English only. Windows only.
+- English only. Windows only. Single-player only.
 - Built for men's and women's football; please report anything that reads wrong in a women's save.
 - It changes words, memory and the media screens. It does not change the match engine.
+- The right-hand buttons are tested beside Heffem's Academy Manager. Without it, they sit in a column down the right-hand edge (`FallbackTop` in `uk.nik.fm27mediamod.core.cfg` moves them).
 
 ## Reporting a problem
 
