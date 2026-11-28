@@ -48,7 +48,7 @@ See **[INSTALL.md](INSTALL.md)**. It covers both cases: BepInEx already installe
 
 The mod never ships Sports Interactive's files. Each time FM starts, the builder checks whether anything needs doing (first run, an SI patch, a mod update), and only then:
 
-- **Language:** takes SI's own English from your game files and FM's template from your languages folder, applies the mod's lines, and writes the language **English (FM27 Media Mod 2)** (the number is the data version).
+- **Language:** takes SI's own English from your game files and FM's own language template (the `example.zip` FM ships), applies the mod's lines, and writes the language **English (FM27 Media Mod 2)** (the number is the data version). Until it's chosen in Preferences > Language, the Press Room says so at the top of the screen.
 - **Questions, chats and commentary:** backs up SI's `media.fmf` and `simatch.fmf`, applies the mod's patches, writes them back, and moves FM's caches aside so it rebuilds them.
 - **Safety:** if an SI patch has changed a file the mod patches, so that a change no longer fits, the builder leaves SI's files alone and says so in `BepInEx\FM27MediaMod\builder.log`.
 

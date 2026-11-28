@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.9.3-beta (28th November 2026)
+
+A fix release for three problems players reported. Thank you to everyone who sent logs.
+
+- **The language is now made on a fresh install.** The builder looked for FM's language template as `example.ltf`, but FM ships it zipped (`example.zip`), so on a new install the mod's language was never made, however often FM was restarted. The builder (1.0.2) now reads the template straight from FM's zip; the language it makes is exactly the same. If `builder.log` said "example.ltf is not there yet", start FM once with 0.9.3, then choose **English (FM27 Media Mod 2)**.
+- **A reminder to choose the language.** Until **English (FM27 Media Mod 2)** is chosen in Preferences > Language, a note at the top of the screen says so (Press Room 0.15.3). Without the language, the mod's extra questions and chat replies show up blank. **Close** hides the note for the session; `[Notices] LanguageCheck` in `uk.nik.fm27mediamod.pressroom.cfg` turns it off.
+- **Uninstalling: a missing step.** FM keeps a compiled copy of the press and chat files in its caches, so after the mod is removed they need clearing, or the mod's lines stay and show blank. The full steps are in INSTALL.md.
+- Nothing else changes: the same language data (version 2), Tabloid 0.6.8, Media Lab 0.6.2, Team Talk Filter 0.3.1, Core 0.2.4 and Reader 0.2.3. The Treatment Room and Partnerships are unchanged.
+
 ## v0.9.2-beta (24th November 2026)
 
 Three downloads from now on: the Media Mod, and the first betas of its two sister mods, the **Treatment Room** and **Partnerships**. Each works on its own.

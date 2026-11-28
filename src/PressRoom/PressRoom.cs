@@ -1,4 +1,5 @@
 // FM27 Media Mod - Press Room 0.4 "On the record". MIT licence (see LICENSE).
+// 0.15.2: a notice when the mod's language isn't the one chosen in Preferences > Language (LanguageCheck.cs). 0.15.3: re-checked sooner.
 // 0.9.0: the dressing room (Incidents.cs): discontent the news reports about your players is kept per save, shown in the
 // MEDIA OFFICE and raised by the press; and when a journalist quotes your earlier answer and that same answer is offered
 // again, the option reads "I still feel the same" instead of repeating itself (what you said is still kept in SI's words).
@@ -24,7 +25,7 @@ namespace FM27MediaMod
     [BepInPlugin(GUID, "FM27 Media Mod Press Room", Version)]
     public class PressRoom : BasePlugin
     {
-        internal const string Version = "0.15.1";
+        internal const string Version = "0.15.3";
         public const string GUID = "uk.nik.fm27mediamod.pressroom";
         internal static BepInEx.Logging.ManualLogSource L;
         internal static int LeadShare; internal static bool Pills, Briefing;
@@ -74,6 +75,7 @@ namespace FM27MediaMod
             BadgesCfg = Config.Bind("Media Office", "Badges", true, "0.13: show SI (the game itself acts) or Story (the mod's world reacts) beside each action.");
             RiskCfg = Config.Bind("Media Office", "RiskBands", true, "0.13: show each action's risk as low, medium or high.");
             Desk.Badges = BadgesCfg.Value; Desk.RiskBands = RiskCfg.Value;
+            LanguageCheck.Enabled = Config.Bind("Notices", "LanguageCheck", true, "0.15.2: if the mod's language isn't the one chosen in Preferences > Language, say so at the top of the screen (until it is chosen, or closed for the session).").Value;
             MediaOffice.Enabled = Config.Bind("Media Office", "Enabled", true, "The MEDIA OFFICE tab: head of media, press list (welcome, favoured, banned) and missions.").Value;
             MediaOffice.Load();
             Word.Load();
@@ -735,6 +737,7 @@ namespace FM27MediaMod
             try
             {
                 Memory.Pump();
+                LanguageCheck.OnText(__instance);   // 0.15.2
                 if (PressRoom.Applying || string.IsNullOrEmpty(txt)) return;
                 MediaOffice.EnsureTab(__instance);
                 if (txt.Length >= 8 && txt.Length <= 20) Desk.SeeDate(__instance, txt);  // 0.13: the date in the top bar, if it passes the hook

@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -158,21 +159,29 @@ namespace FM27MediaMod.Builder
         static void BuildLanguage(BuildSettings s, Dictionary<string, string> st, string dataVer, Action<string> log)
         {
             var langsFmf = Path.Combine(s.GameDir, "data", "game_simulation", "languages.fmf");
-            var tmpl = Path.Combine(s.LanguagesDir, "example.ltf");
-            if (!File.Exists(tmpl)) { log("language: FM's template " + tmpl + " is not there yet; start FM once, close it, and start it again"); return; }
+            var tmpl = FindTemplate(s, log);
+            if (tmpl == null)
+            {
+                log("language: FM's language template was not found: no example.ltf or example.zip in " + s.LanguagesDir + ", and no example.zip in the game's data\\game_simulation\\templates\\user_folder\\languages. " +
+                    "Steam: verify the game files. If FM keeps its languages somewhere else, set LanguagesFolder in BepInEx\\config\\uk.nik.fm27mediamod.builder.cfg");
+                return;
+            }
             var la = new FmfArchive(langsFmf);
             FmfEntry eng = null;
             foreach (var e in la.Entries) if (e.Path.EndsWith("/english.ltc", StringComparison.OrdinalIgnoreCase)) eng = e;
             if (eng == null) { log("language: english.ltc not found in languages.fmf"); return; }
             var english = la.Read(eng);
             var engMd5 = Md5(english);
-            var fi = new FileInfo(tmpl); var tsig = fi.Length + "/" + fi.LastWriteTimeUtc.Ticks;
+            var tsig = tmpl.Sig;
+            if (tmpl.Ltf != null) CheckZip(s, log);   // 1.0.2: prove the zip route works here too, without rebuilding anything
             var baseName = s.ModName + " " + dataVer;
             var outFile = Path.Combine(s.LanguagesDir, baseName + ".ltf");
             var langName = "English (" + baseName + ")";
             if (File.Exists(outFile) && Get(st, "lang.english") == engMd5 && Get(st, "lang.template") == tsig && Get(st, "lang.data") == dataVer && Get(st, "lang.file") == outFile)
             { log("language: up to date (" + langName + ")"); return; }
-            var r = LanguageBuilder.Build(english, tmpl, s.DataDir, langName, outFile);
+            log("language: building from FM's template " + tmpl.From);
+            LanguageBuilder.Result r;
+            using (var keep = new Keep()) r = LanguageBuilder.Build(english, () => tmpl.Open(keep), s.DataDir, langName, outFile);
             if (r.EditsSkipped > 0) log($"language: {r.EditsSkipped} small edits skipped because SI has reworded those lines");
             // FM compiles the .ltf into an .ltc of the same name the first time it is chosen: move a stale one aside
             var ltc = Path.ChangeExtension(outFile, ".ltc");
@@ -185,6 +194,71 @@ namespace FM27MediaMod.Builder
                 log("language: the earlier " + Path.GetFileNameWithoutExtension(prev) + " is still in your languages folder; choose " + langName + " instead (you can delete the old .ltf and .ltc with FM closed)");
             st["lang.english"] = engMd5; st["lang.template"] = tsig; st["lang.data"] = dataVer; st["lang.file"] = outFile;
             log($"language: built \"{langName}\" ({r.Rows} mod lines, {r.Appended} new lines); choose it in Preferences > Language");
+        }
+
+        // ---------------- FM's language template ----------------
+        // FM27 ships its template zipped (data\game_simulation\templates\user_folder\languages\example.zip, holding
+        // example#2.ltf) and copies the zip into the player's languages folder; FM never unzips it. Builder 1.0.1 looked only
+        // for an unzipped example.ltf, so on a fresh install the language was never built. 1.0.2: an example.ltf in the
+        // languages folder still comes first (so a player who unzipped it by hand sees no rebuild); then the zip in the
+        // languages folder; then the game's own copy. The zip's template is read as a stream; nothing is unpacked to disk.
+        // Its signature comes from the entry inside the zip (size, packed size, date), so a fresh copy of the same zip is no change.
+        internal sealed class Template
+        {
+            public string Ltf, Zip, Entry, Sig, From;
+            public Stream Open(Keep keep)
+            {
+                if (Ltf != null) return File.OpenRead(Ltf);
+                var za = ZipFile.OpenRead(Zip); keep.Add(za);
+                var e = za.GetEntry(Entry); if (e == null) throw new FileNotFoundException(Entry + " is no longer in " + Zip);
+                return e.Open();
+            }
+        }
+        internal sealed class Keep : IDisposable
+        {
+            readonly List<IDisposable> items = new List<IDisposable>();
+            public void Add(IDisposable d) => items.Add(d);
+            public void Dispose() { foreach (var d in items) { try { d.Dispose(); } catch { } } items.Clear(); }
+        }
+        // read the first line of the template inside FM's own zip, so the log shows the zip route works on this PC
+        static void CheckZip(BuildSettings s, Action<string> log)
+        {
+            var saved = s.LanguagesDir;
+            try
+            {
+                var t = FindTemplate(new BuildSettings { GameDir = s.GameDir, LanguagesDir = Path.Combine(s.StateDir, "no languages folder") }, m => { });
+                if (t == null) { log("language: (check) FM's example.zip not found in the game folder"); return; }
+                using (var keep = new Keep())
+                using (var r = new StreamReader(t.Open(keep), new UTF8Encoding(false), true))
+                {
+                    string first = r.ReadLine() ?? "";
+                    log("language: (check) FM's own template zip is readable too: " + t.Entry + ", first line \"" + (first.Length > 40 ? first.Substring(0, 40) : first) + "\"");
+                }
+            }
+            catch (Exception ex) { log("language: (check) FM's template zip could not be read here (" + ex.GetType().Name + ": " + ex.Message + "); the example.ltf in the languages folder is used"); }
+        }
+
+        internal static Template FindTemplate(BuildSettings s, Action<string> log)
+        {
+            var ltf = Path.Combine(s.LanguagesDir, "example.ltf");
+            if (File.Exists(ltf)) { var fi = new FileInfo(ltf); return new Template { Ltf = ltf, Sig = fi.Length + "/" + fi.LastWriteTimeUtc.Ticks, From = ltf }; }
+            var zips = new[] { Path.Combine(s.LanguagesDir, "example.zip"), Path.Combine(s.GameDir, "data", "game_simulation", "templates", "user_folder", "languages", "example.zip") };
+            foreach (var zip in zips)
+            {
+                if (!File.Exists(zip)) continue;
+                try
+                {
+                    using (var za = ZipFile.OpenRead(zip))
+                    {
+                        ZipArchiveEntry e = null;
+                        foreach (var x in za.Entries) if (x.FullName.EndsWith(".ltf", StringComparison.OrdinalIgnoreCase) && x.Length > 0) { e = x; break; }
+                        if (e == null) { log("language: " + zip + " holds no .ltf template; trying the next place"); continue; }
+                        return new Template { Zip = zip, Entry = e.FullName, Sig = "zip " + e.Length + "/" + e.CompressedLength + "/" + e.LastWriteTime.UtcTicks, From = zip + " (" + e.FullName + ")" };
+                    }
+                }
+                catch (Exception ex) { log("language: could not read " + zip + " (" + ex.GetType().Name + ": " + ex.Message + "); trying the next place"); }
+            }
+            return null;
         }
 
         // ---------------- helpers ----------------

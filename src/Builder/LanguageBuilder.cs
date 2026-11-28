@@ -23,6 +23,10 @@ namespace FM27MediaMod.Builder
 
         // english: SI's english.ltc bytes; template: example.ltf path; data: folder with lang_lines.tsv and lang_append.ltf
         public static Result Build(byte[] english, string template, string dataDir, string langName, string outFile)
+            => Build(english, () => File.OpenRead(template), dataDir, langName, outFile);
+
+        // 1.0.2: the template as a stream, so it can come straight out of FM's example.zip
+        public static Result Build(byte[] english, Func<Stream> openTemplate, string dataDir, string langName, string outFile)
         {
             var res = new Result();
             var eng = new Dictionary<int, string>(); var pc = new Dictionary<int, string>();
@@ -41,7 +45,7 @@ namespace FM27MediaMod.Builder
             var tmp = outFile + ".tmp";
             using (var w = new StreamWriter(tmp, false, new UTF8Encoding(true)) { NewLine = "\r\n" })
             {
-                using (var r = new StreamReader(template, new UTF8Encoding(false), true))
+                using (var r = new StreamReader(openTemplate(), new UTF8Encoding(false), true))
                 {
                     string line;
                     while ((line = r.ReadLine()) != null)
